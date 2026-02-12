@@ -1,0 +1,56 @@
+name: spiritual_companion
+description: A Muslim spiritual companion app with prayer times, Quran, and Islamic features.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+
+  # Location and GPS
+  geolocator: ^10.1.0
+  flutter_compass: ^0.8.1
+
+  # Prayer times
+  adhan: ^2.0.0
+
+  # Islamic calendar
+  hijri: ^3.0.0
+
+  # Audio
+  just_audio: ^0.9.36
+
+  # Notifications
+  flutter_local_notifications: ^16.3.0
+  timezone: ^0.9.2
+
+  # Storage
+  shared_preferences: ^2.2.2
+
+  # UI
+  material_design_icons_flutter: ^7.0.7296
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/audio/
+    - assets/quran.json
+    - assets/adhkar.txt
+
+  fonts:
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
