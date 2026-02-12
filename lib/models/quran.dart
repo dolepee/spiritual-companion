@@ -18,8 +18,9 @@ class Surah {
   });
 
   factory Surah.fromJson(Map<String, dynamic> json) {
+    final surahNum = json['number'] as int;
     final ayahsList = (json['ayahs'] as List<dynamic>)
-        .map((ayah) => Ayah.fromJson(ayah))
+        .map((ayah) => Ayah.fromJson(ayah, surahNumber: surahNum))
         .toList();
 
     return Surah(
@@ -44,6 +45,7 @@ class Ayah {
   final int ruku;
   final int hizbQuarter;
   final String sajda;
+  final int surahNumber;
 
   Ayah({
     required this.number,
@@ -55,9 +57,10 @@ class Ayah {
     required this.ruku,
     required this.hizbQuarter,
     required this.sajda,
+    this.surahNumber = 0,
   });
 
-  factory Ayah.fromJson(Map<String, dynamic> json) {
+  factory Ayah.fromJson(Map<String, dynamic> json, {int surahNumber = 0}) {
     return Ayah(
       number: json['number'],
       text: json['text'],
@@ -68,6 +71,7 @@ class Ayah {
       ruku: json['ruku'],
       hizbQuarter: json['hizbQuarter'],
       sajda: json['sajda'] ?? '',
+      surahNumber: surahNumber,
     );
   }
 }

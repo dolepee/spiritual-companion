@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_compass/flutter_compass.dart';
-import '../services/prayer_service.dart';
 import '../services/location_service.dart';
 import '../widgets/qibla_compass.dart';
 import '../widgets/prayer_times_list.dart';
@@ -13,23 +11,7 @@ class PrayerScreen extends StatefulWidget {
 }
 
 class _PrayerScreenState extends State<PrayerScreen> {
-  double? _heading;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeCompass();
-  }
-
-  void _initializeCompass() {
-    FlutterCompass.events?.listen((event) {
-      if (event.heading != null) {
-        setState(() {
-          _heading = event.heading!;
-        });
-      }
-    });
-  }
+  final double _heading = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +108,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
             SizedBox(
               height: 200,
               child: QiblaCompass(
-                heading: _heading ?? 0,
+                heading: _heading,
                 qiblaDirection: LocationService.getQiblaDirection(),
               ),
             ),

@@ -64,7 +64,7 @@ class QuranPageViewer extends StatelessWidget {
   }
 
   Widget _buildAyahCard(BuildContext context, Ayah ayah) {
-    final surahName = QuranService.getSurahName(ayah.numberInSurah == 1 ? ayah.juz : 0);
+    final surahName = QuranService.getSurahName(ayah.surahNumber);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12.0),
