@@ -1,5 +1,44 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+class AdhkarItem {
+  const AdhkarItem({
+    required this.duaId,
+    required this.title,
+    required this.arabic,
+    required this.transcription,
+    required this.english,
+    required this.reference,
+  });
+
+  final String duaId;
+  final String title;
+  final String arabic;
+  final String transcription;
+  final String english;
+  final String reference;
+
+  factory AdhkarItem.fromJson(Map<String, dynamic> json) {
+    return AdhkarItem(
+      duaId: _asString(json['duaId'], fallback: 'Dua'),
+      title: _asString(json['title']),
+      arabic: _asString(json['arabic']),
+      transcription: _asString(json['transcription']),
+      english: _asString(json['english']),
+      reference: _asString(json['reference']),
+    );
+  }
+
+  static String _asString(dynamic value, {String fallback = ''}) {
+    if (value is String) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty ? fallback : trimmed;
+    }
+    return fallback;
+  }
+}
 
 class AdhkarScreen extends StatefulWidget {
   const AdhkarScreen({super.key});
@@ -9,9 +48,19 @@ class AdhkarScreen extends StatefulWidget {
 }
 
 class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMixin {
-  String _adhkarContent = '';
-  bool _isLoading = true;
   late TabController _tabController;
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  String _title = 'Words of remembrance for morning and evening';
+  List<AdhkarItem> _morningAdhkar = const [];
+  List<AdhkarItem> _eveningAdhkar = const [];
+
+  bool _showArabic = true;
+  bool _showTranscription = true;
+  bool _showEnglish = true;
+  bool _showReference = true;
 
   @override
   void initState() {
@@ -28,17 +77,45 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
 
   Future<void> _loadAdhkarContent() async {
     try {
-      final String content = await rootBundle.loadString('assets/adhkar.txt');
+      final raw = await rootBundle.loadString('assets/adhkar_data.json');
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('Invalid adhkar data format');
+      }
+
+      final morning = _parseAdhkarList(decoded['morning']);
+      final evening = _parseAdhkarList(decoded['evening']);
+
       setState(() {
-        _adhkarContent = content;
+        _title = (decoded['title'] is String && (decoded['title'] as String).trim().isNotEmpty)
+            ? (decoded['title'] as String).trim()
+            : 'Words of remembrance for morning and evening';
+        _morningAdhkar = morning;
+        _eveningAdhkar = evening;
         _isLoading = false;
+        _errorMessage = (morning.isEmpty && evening.isEmpty)
+            ? 'No adhkar entries found. Check assets/adhkar_data.json.'
+            : null;
       });
     } catch (e) {
       setState(() {
-        _adhkarContent = 'Error loading Adhkar content. Please check if the assets/adhkar.txt file exists.';
         _isLoading = false;
+        _errorMessage = 'Error loading Adhkar content. Check assets/adhkar_data.json.';
       });
     }
+  }
+
+  List<AdhkarItem> _parseAdhkarList(dynamic rawList) {
+    if (rawList is! List) return const [];
+    final result = <AdhkarItem>[];
+    for (final item in rawList) {
+      if (item is Map<String, dynamic>) {
+        result.add(AdhkarItem.fromJson(item));
+      } else if (item is Map) {
+        result.add(AdhkarItem.fromJson(Map<String, dynamic>.from(item)));
+      }
+    }
+    return result;
   }
 
   @override
@@ -50,49 +127,105 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.onPrimary,
-          labelColor: Theme.of(context).colorScheme.onPrimary,
-          unselectedLabelColor: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
           tabs: const [
             Tab(text: 'Morning'),
             Tab(text: 'Evening'),
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildAdhkarContent('Morning Adhkar', _getMorningAdhkar()),
-                _buildAdhkarContent('Evening Adhkar', _getEveningAdhkar()),
-              ],
-            ),
+      body: _buildBody(),
     );
   }
 
-  Widget _buildAdhkarContent(String title, List<String> adhkarList) {
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _errorMessage = null;
+                  });
+                  _loadAdhkarContent();
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildSection(
+          sectionTitle: 'Morning Adhkar',
+          icon: Icons.wb_sunny_outlined,
+          items: _morningAdhkar,
+        ),
+        _buildSection(
+          sectionTitle: 'Evening Adhkar',
+          icon: Icons.nightlight_round,
+          items: _eveningAdhkar,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSection({
+    required String sectionTitle,
+    required IconData icon,
+    required List<AdhkarItem> items,
+  }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
             color: Theme.of(context).colorScheme.primaryContainer,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.wb_sunny,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    size: 28,
+                  Row(
+                    children: [
+                      Icon(
+                        icon,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          sectionTitle,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 8),
                   Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                    _title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                   ),
@@ -100,97 +233,63 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          ...adhkarList.asMap().entries.map((entry) {
+          const SizedBox(height: 12),
+          _buildOptionsCard(),
+          const SizedBox(height: 12),
+          if (items.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('No entries available in this section yet.'),
+              ),
+            ),
+          ...items.asMap().entries.map((entry) {
             final index = entry.key;
-            final adhkar = entry.value;
-            return _buildAdhkarCard(index + 1, adhkar);
-          }).toList(),
+            final item = entry.value;
+            return _buildAdhkarCard(index + 1, item);
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildAdhkarCard(int number, String adhkar) {
-    // Split Arabic text from transliteration
-    String arabicText = adhkar;
-    String? transliteration;
-    final transIndex = adhkar.indexOf('TRANSLITERATION:');
-    if (transIndex != -1) {
-      arabicText = adhkar.substring(0, transIndex).trim();
-      transliteration = adhkar.substring(transIndex + 'TRANSLITERATION:'.length).trim();
-    }
-
+  Widget _buildOptionsCard() {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(15),
+            Text(
+              'Option Boxes',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: Center(
-                    child: Text(
-                      '$number',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    arabicText,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontSize: 18,
-                          height: 1.8,
-                          fontFamily: 'Amiri',
-                        ),
-                    textDirection: TextDirection.rtl,
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
             ),
-            if (transliteration != null) ...[
-              const Divider(height: 20),
-              Text(
-                transliteration,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      height: 1.5,
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                      fontStyle: FontStyle.italic,
-                    ),
-                textDirection: TextDirection.ltr,
-                textAlign: TextAlign.left,
-              ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _copyToClipboard(adhkar);
-                  },
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                  ),
+                _buildOptionBox(
+                  label: 'Arabic',
+                  value: _showArabic,
+                  onChanged: (value) => setState(() => _showArabic = value),
+                ),
+                _buildOptionBox(
+                  label: 'Transcription',
+                  value: _showTranscription,
+                  onChanged: (value) => setState(() => _showTranscription = value),
+                ),
+                _buildOptionBox(
+                  label: 'English',
+                  value: _showEnglish,
+                  onChanged: (value) => setState(() => _showEnglish = value),
+                ),
+                _buildOptionBox(
+                  label: 'Reference',
+                  value: _showReference,
+                  onChanged: (value) => setState(() => _showReference = value),
                 ),
               ],
             ),
@@ -200,65 +299,188 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
     );
   }
 
-  List<String> _parseSection(String sectionHeader) {
-    try {
-      if (_adhkarContent.isEmpty) return [];
-      final sections = _adhkarContent.split(RegExp(r'^# ', multiLine: true));
-      for (final section in sections) {
-        if (section.trim().startsWith(sectionHeader)) {
-          final content = section.substring(section.indexOf('\n') + 1).trim();
-          if (content.isEmpty) continue;
-          // Split by numbered entries (lines starting with "1. ", "2. ", etc.)
-          final entries = content.split(RegExp(r'\n(?=\d+\.\s)', multiLine: true));
-          final result = entries
-              .map((entry) => entry.replaceFirst(RegExp(r'^\d+\.\s*'), '').trim())
-              .where((entry) => entry.isNotEmpty)
-              .toList();
-          if (result.isNotEmpty) return result;
-        }
-      }
-    } catch (_) {}
-    return [];
+  Widget _buildOptionBox({
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: value ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+          ),
+          color: value ? Theme.of(context).colorScheme.primaryContainer : Colors.transparent,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Checkbox(
+              value: value,
+              visualDensity: VisualDensity.compact,
+              onChanged: (checked) => onChanged(checked ?? false),
+            ),
+            Text(label),
+          ],
+        ),
+      ),
+    );
   }
 
-  List<String> _getMorningAdhkar() {
-    final parsed = _parseSection('Morning Adhkar');
-    if (parsed.isNotEmpty) return parsed;
-    return [
-      'أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ',
-      'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-      'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
-      'اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا',
-      'اللَّهُمَّ أَنْتَ رَبُّنَا لَا إِلَهَ إِلَّا أَنْتَ',
-      'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ',
-      'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ',
-      'رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا',
-      'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ',
-      'اللَّهُمَّ عَافِنِي فِي بَدَنِي',
-    ];
+  Widget _buildAdhkarCard(int number, AdhkarItem item) {
+    final visibleFieldCount = [
+      _showArabic && item.arabic.isNotEmpty,
+      _showTranscription && item.transcription.isNotEmpty,
+      _showEnglish && item.english.isNotEmpty,
+      _showReference && item.reference.isNotEmpty,
+    ].where((isVisible) => isVisible).length;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    '$number',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (visibleFieldCount == 0)
+              const Text('Enable at least one option box to display the content.'),
+            if (_showArabic && item.arabic.isNotEmpty)
+              _buildFieldSection(
+                label: 'Arabic',
+                value: item.arabic,
+                isArabic: true,
+              ),
+            if (_showTranscription && item.transcription.isNotEmpty)
+              _buildFieldSection(
+                label: 'Transcription',
+                value: item.transcription,
+              ),
+            if (_showEnglish && item.english.isNotEmpty)
+              _buildFieldSection(
+                label: 'English',
+                value: item.english,
+              ),
+            if (_showReference && item.reference.isNotEmpty)
+              _buildFieldSection(
+                label: 'Reference',
+                value: item.reference,
+              ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _copyToClipboard(item),
+                icon: const Icon(Icons.copy),
+                label: const Text('Copy'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  List<String> _getEveningAdhkar() {
-    final parsed = _parseSection('Evening Adhkar');
-    if (parsed.isNotEmpty) return parsed;
-    return [
-      'أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ',
-      'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-      'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
-      'اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا',
-      'اللَّهُمَّ أَنْتَ رَبُّنَا لَا إِلَهَ إِلَّا أَنْتَ',
-      'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ عَدَدَ خَلْقِهِ',
-      'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ',
-      'رَضِيتُ بِاللَّهِ رَبًّا وَبِالْإِسْلَامِ دِينًا',
-      'حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ',
-      'اللَّهُمَّ عَافِنِي فِي بَدَنِي',
-    ];
+  Widget _buildFieldSection({
+    required String label,
+    required String value,
+    bool isArabic = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+            textAlign: isArabic ? TextAlign.right : TextAlign.left,
+            style: isArabic
+                ? Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontFamily: 'Amiri',
+                      fontSize: 20,
+                      height: 1.7,
+                    )
+                : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.5,
+                    ),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _copyToClipboard(String text) {
+  void _copyToClipboard(AdhkarItem item) {
+    final text = _formatAdhkarForCopy(item);
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Adhkar copied to clipboard')),
     );
+  }
+
+  String _formatAdhkarForCopy(AdhkarItem item) {
+    final buffer = StringBuffer();
+    buffer.writeln(item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}');
+    buffer.writeln();
+    if (item.arabic.isNotEmpty) {
+      buffer.writeln('Arabic:');
+      buffer.writeln(item.arabic);
+      buffer.writeln();
+    }
+    if (item.transcription.isNotEmpty) {
+      buffer.writeln('Transcription:');
+      buffer.writeln(item.transcription);
+      buffer.writeln();
+    }
+    if (item.english.isNotEmpty) {
+      buffer.writeln('English:');
+      buffer.writeln(item.english);
+      buffer.writeln();
+    }
+    if (item.reference.isNotEmpty) {
+      buffer.writeln('Reference:');
+      buffer.writeln(item.reference);
+    }
+    return buffer.toString().trim();
   }
 }

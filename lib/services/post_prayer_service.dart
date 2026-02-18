@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../services/quran_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_service.dart';
@@ -80,7 +79,6 @@ class PostPrayerService {
     final nextPage = QuranService.getNextUnreadPage();
     
     NotificationService.showQuranReminder(
-      FlutterLocalNotificationsPlugin(),
       nextPage,
     );
   }

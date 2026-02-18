@@ -83,7 +83,7 @@ class CompassPainter extends CustomPainter {
     _drawDirectionMark(canvas, center, radius, 180, 'S', Colors.grey);
     _drawDirectionMark(canvas, center, radius, 270, 'W', Colors.grey);
 
-    final qiblaAngle = qiblaDirection - heading;
+    final qiblaAngle = ((qiblaDirection - heading) % 360 + 360) % 360;
     _drawQiblaIndicator(canvas, center, radius * 0.8, qiblaAngle);
   }
 
@@ -157,6 +157,8 @@ class CompassPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+    if (oldDelegate is! CompassPainter) return true;
+    return oldDelegate.heading != heading ||
+        oldDelegate.qiblaDirection != qiblaDirection;
   }
 }

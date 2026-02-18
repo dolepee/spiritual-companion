@@ -4,10 +4,12 @@ import '../models/quran.dart';
 
 class QuranPageViewer extends StatelessWidget {
   final int pageNumber;
+  final String? arabicFontFamily;
 
   const QuranPageViewer({
     super.key,
     required this.pageNumber,
+    this.arabicFontFamily,
   });
 
   @override
@@ -106,7 +108,7 @@ class QuranPageViewer extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontSize: 18,
                     height: 1.8,
-                    fontFamily: 'Amiri',
+                    fontFamily: arabicFontFamily,
                   ),
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.right,

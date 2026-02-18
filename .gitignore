@@ -6,3 +6,6 @@ build/
 .idea/
 .vscode/
 *.lock
+
+# JVM crash dumps
+*.hprof

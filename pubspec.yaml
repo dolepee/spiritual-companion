@@ -26,8 +26,9 @@ dependencies:
   just_audio: ^0.9.36
 
   # Notifications
-  flutter_local_notifications: ^16.3.0
+  flutter_local_notifications: ^18.0.0
   timezone: ^0.9.2
+  flutter_timezone: ^4.1.0
 
   # Storage
   shared_preferences: ^2.2.2
@@ -46,6 +47,7 @@ flutter:
   assets:
     - assets/audio/
     - assets/quran.json
+    - assets/adhkar_data.json
     - assets/adhkar.txt
 
   fonts:
@@ -53,4 +55,9 @@ flutter:
       fonts:
         - asset: assets/fonts/Amiri-Regular.ttf
         - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
+    - family: DejaVuArabic
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
           weight: 700

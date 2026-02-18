@@ -19,11 +19,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await NotificationService.initialize(flutterLocalNotificationsPlugin);
+    tz.initializeTimeZones();
   } catch (_) {}
 
   try {
-    tz.initializeTimeZones();
+    await NotificationService.initialize(flutterLocalNotificationsPlugin);
   } catch (_) {}
 
   try {
@@ -39,7 +39,7 @@ void main() async {
   } catch (_) {}
 
   try {
-    await NotificationService.scheduleFridayReminders(flutterLocalNotificationsPlugin);
+    await NotificationService.scheduleFridayReminders();
   } catch (_) {}
 
   try {
