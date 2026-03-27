@@ -35,6 +35,7 @@ class QuranService {
   static const String _pageKey = 'quran_current_page';
   static const String _fontKey = 'quran_font_option';
   static const String _reciterKey = 'quran_reciter_option';
+  static const String _bookmarksKey = 'quran_bookmarked_pages';
 
   static final AudioPlayer _audioPlayer = AudioPlayer();
   static bool _audioStateListenerAttached = false;
@@ -42,6 +43,7 @@ class QuranService {
   static int? _playingSurah;
   static String _selectedFontId = 'amiri';
   static String _selectedReciterId = 'alafasy';
+  static final Set<int> _bookmarkedPages = <int>{};
 
   static const List<QuranFontOption> fontOptions = [
     QuranFontOption(
@@ -99,6 +101,12 @@ class QuranService {
   static bool get isAudioPlaying => _isAudioPlaying;
   static int? get playingSurah => _playingSurah;
   static Stream<PlayerState> get playerStateStream => _audioPlayer.playerStateStream;
+  static Stream<Duration> get positionStream => _audioPlayer.positionStream;
+  static Stream<Duration?> get durationStream => _audioPlayer.durationStream;
+  static Set<int> get bookmarkedPages => Set<int>.from(_bookmarkedPages);
+  static List<Surah> get allSurahs => _quranData?.surahs ?? const <Surah>[];
+  static Duration get currentAudioPosition => _audioPlayer.position;
+  static Duration? get currentAudioDuration => _audioPlayer.duration;
 
   static QuranFontOption get selectedFontOption {
     return fontOptions.firstWhere(
@@ -118,6 +126,7 @@ class QuranService {
     await loadQuranData();
     await loadReadingProgress();
     await loadPreferences();
+    await loadBookmarks();
     _bindAudioState();
   }
 
@@ -144,11 +153,44 @@ class QuranService {
   static Future<void> saveReadingProgress(int pageNumber) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_pageKey, pageNumber);
-      _currentPage = pageNumber;
+      final normalized = pageNumber.clamp(1, getTotalPages());
+      await prefs.setInt(_pageKey, normalized);
+      _currentPage = normalized;
     } catch (e) {
       if (kDebugMode) print('Error saving reading progress: $e');
     }
+  }
+
+  static Future<void> loadBookmarks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final rawBookmarks = prefs.getStringList(_bookmarksKey) ?? <String>[];
+      _bookmarkedPages
+        ..clear()
+        ..addAll(rawBookmarks.map(int.tryParse).whereType<int>());
+    } catch (error) {
+      if (kDebugMode) {
+        print('Error loading Quran bookmarks: $error');
+      }
+    }
+  }
+
+  static Future<void> toggleBookmark(int pageNumber) async {
+    final normalized = pageNumber.clamp(1, getTotalPages());
+    if (_bookmarkedPages.contains(normalized)) {
+      _bookmarkedPages.remove(normalized);
+    } else {
+      _bookmarkedPages.add(normalized);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _bookmarksKey,
+      (_bookmarkedPages.toList()..sort()).map((page) => '$page').toList(),
+    );
+  }
+
+  static bool isBookmarked(int pageNumber) {
+    return _bookmarkedPages.contains(pageNumber);
   }
 
   static List<Ayah> getAyahsForPage(int pageNumber) {
@@ -176,6 +218,75 @@ class QuranService {
     } catch (e) {
       return '';
     }
+  }
+
+  static Surah? getSurahByNumber(int surahNumber) {
+    if (_quranData == null) return null;
+    try {
+      return _quranData!.surahs.firstWhere((s) => s.number == surahNumber);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static List<Surah> getSurahsForPage(int pageNumber) {
+    if (_quranData == null) return const [];
+    final surahNumbers = getAyahsForPage(pageNumber)
+        .map((ayah) => ayah.surahNumber)
+        .toSet()
+        .toList()
+      ..sort();
+    return surahNumbers
+        .map(getSurahByNumber)
+        .whereType<Surah>()
+        .toList(growable: false);
+  }
+
+  static int? getJuzForPage(int pageNumber) {
+    final ayahs = getAyahsForPage(pageNumber);
+    if (ayahs.isEmpty) return null;
+    return ayahs.first.juz;
+  }
+
+  static String getSurahNamesForPage(int pageNumber) {
+    final surahs = getSurahsForPage(pageNumber);
+    if (surahs.isEmpty) return 'No surah';
+    if (surahs.length == 1) return surahs.first.englishName;
+    return surahs.map((surah) => surah.englishName).join(' • ');
+  }
+
+  static int getFirstPageForSurah(int surahNumber) {
+    final surah = getSurahByNumber(surahNumber);
+    if (surah == null || surah.ayahs.isEmpty) return 1;
+    return surah.ayahs.first.page;
+  }
+
+  static int getFirstPageForJuz(int juz) {
+    if (_quranData == null) return 1;
+    for (final surah in _quranData!.surahs) {
+      for (final ayah in surah.ayahs) {
+        if (ayah.juz == juz) {
+          return ayah.page;
+        }
+      }
+    }
+    return 1;
+  }
+
+  static Ayah? getDailyAyah(DateTime date) {
+    if (_quranData == null) return null;
+    final allAyahs = <Ayah>[];
+    for (final surah in _quranData!.surahs) {
+      allAyahs.addAll(surah.ayahs);
+    }
+    if (allAyahs.isEmpty) return null;
+    final dayOfYear = date.difference(DateTime(date.year, 1, 1)).inDays;
+    return allAyahs[dayOfYear % allAyahs.length];
+  }
+
+  static String getSurahMeaning(int surahNumber) {
+    final surah = getSurahByNumber(surahNumber);
+    return surah?.englishNameTranslation ?? '';
   }
 
   static int getTotalPages() {
@@ -221,6 +332,10 @@ class QuranService {
     await prefs.setString(_reciterKey, reciterId);
   }
 
+  static Future<void> jumpToPage(int pageNumber) async {
+    await saveReadingProgress(pageNumber);
+  }
+
   static String buildSurahAudioUrl(int surahNumber) {
     final surahCode = surahNumber.toString().padLeft(3, '0');
     return '${selectedReciterOption.baseUrl}/$surahCode.mp3';
@@ -263,6 +378,10 @@ class QuranService {
     await _audioPlayer.stop();
     _isAudioPlaying = false;
     _playingSurah = null;
+  }
+
+  static Future<void> seekAudio(Duration position) async {
+    await _audioPlayer.seek(position);
   }
 
   static void _bindAudioState() {

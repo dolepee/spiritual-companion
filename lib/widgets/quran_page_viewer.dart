@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import '../services/quran_service.dart';
+
+import '../app_theme.dart';
 import '../models/quran.dart';
+import '../services/quran_service.dart';
 
 class QuranPageViewer extends StatelessWidget {
-  final int pageNumber;
-  final String? arabicFontFamily;
-
   const QuranPageViewer({
     super.key,
     required this.pageNumber,
     this.arabicFontFamily,
   });
+
+  final int pageNumber;
+  final String? arabicFontFamily;
 
   @override
   Widget build(BuildContext context) {
@@ -18,152 +20,273 @@ class QuranPageViewer extends StatelessWidget {
 
     if (ayahs.isEmpty) {
       return Center(
-        child: Text(
-          'No content found for page $pageNumber',
-          style: Theme.of(context).textTheme.bodyLarge,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'No Quran content was found for page $pageNumber.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+    final groupedAyahs = _groupAyahsBySurah(ayahs);
+    final surahs = QuranService.getSurahsForPage(pageNumber);
+
+    return Card(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPageHeader(context, surahs),
+            const SizedBox(height: 18),
+            ...groupedAyahs.entries.map((entry) {
+              final surah = QuranService.getSurahByNumber(entry.key);
+              if (surah == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _SurahPageSection(
+                  surah: surah,
+                  ayahs: entry.value,
+                  arabicFontFamily: arabicFontFamily,
+                ),
+              );
+            }),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                'Reading position updates automatically as you move through the pages.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<int, List<Ayah>> _groupAyahsBySurah(List<Ayah> ayahs) {
+    final grouped = <int, List<Ayah>>{};
+    for (final ayah in ayahs) {
+      grouped.putIfAbsent(ayah.surahNumber, () => <Ayah>[]).add(ayah);
+    }
+    return grouped;
+  }
+
+  Widget _buildPageHeader(BuildContext context, List<Surah> surahs) {
+    final surahLabel = surahs.map((item) => item.englishName).join(' • ');
+    final juz = QuranService.getJuzForPage(pageNumber) ?? 1;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cream,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE7DCCA)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPageHeader(context),
-          const SizedBox(height: 24),
-          ...ayahs.map((ayah) => _buildAyahCard(context, ayah)),
-          const SizedBox(height: 24),
-          _buildPageFooter(context),
+          Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Text(
+                  pageNumber.toString(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.emerald,
+                      ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mushaf Page $pageNumber',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      surahLabel,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              _MetaChip(label: 'Juz $juz'),
+            ],
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPageHeader(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Page $pageNumber',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-            ),
-            Icon(
-              Icons.menu_book,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ],
-        ),
+class _SurahPageSection extends StatelessWidget {
+  const _SurahPageSection({
+    required this.surah,
+    required this.ayahs,
+    required this.arabicFontFamily,
+  });
+
+  final Surah surah;
+  final List<Ayah> ayahs;
+  final String? arabicFontFamily;
+
+  @override
+  Widget build(BuildContext context) {
+    final firstAyah = ayahs.first.numberInSurah;
+    final lastAyah = ayahs.last.numberInSurah;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFEDE3D4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildAyahCard(BuildContext context, Ayah ayah) {
-    final surahName = QuranService.getSurahName(ayah.surahNumber);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (ayah.numberInSurah == 1) ...[
-              Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      surah.englishName,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${surah.englishNameTranslation} • ${surah.revelationType}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                surah.name,
+                textDirection: TextDirection.rtl,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.emerald,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _MetaChip(label: 'Ayahs $firstAyah-$lastAyah'),
+              _MetaChip(label: '${surah.numberOfAyahs} total'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFCFAF5),
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Text.rich(
+              TextSpan(
                 children: [
-                  Text(
-                    surahName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
+                  for (final ayah in ayahs) ...[
+                    TextSpan(text: '${ayah.text} '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: _AyahMarker(number: ayah.numberInSurah),
                     ),
-                    child: Text(
-                      'Juz ${ayah.juz}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          ),
-                    ),
-                  ),
+                    const TextSpan(text: ' '),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-            ],
-            Text(
-              ayah.text,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontSize: 18,
-                    height: 1.8,
-                    fontFamily: arabicFontFamily,
-                  ),
               textDirection: TextDirection.rtl,
               textAlign: TextAlign.right,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(16),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontFamily: arabicFontFamily ?? 'Amiri',
+                    fontSize: 24,
+                    height: 2.1,
+                    color: AppColors.ink,
                   ),
-                  child: Text(
-                    '﴿${ayah.numberInSurah}﴾',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSecondaryContainer,
-                        ),
-                  ),
-                ),
-              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildPageFooter(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.surfaceVariant,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton.icon(
-              onPressed: () async {
-                await QuranService.saveReadingProgress(pageNumber);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Progress saved')),
-                  );
-                }
-              },
-              icon: const Icon(Icons.bookmark),
-              label: const Text('Mark as Read'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              ),
+class _AyahMarker extends StatelessWidget {
+  const _AyahMarker({required this.number});
+
+  final int number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5E8CA),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFEAD5A2)),
+      ),
+      child: Text(
+        number.toString(),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-        ),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFE7DCCA)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink,
+            ),
       ),
     );
   }

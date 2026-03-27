@@ -9,6 +9,7 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Prayer'), findsOneWidget);
     expect(find.text('Quran'), findsOneWidget);
-    expect(find.text('Calendar'), findsOneWidget);
+    expect(find.text('Dates'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }
