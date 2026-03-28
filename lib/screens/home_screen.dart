@@ -70,16 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(context),
-                    const SizedBox(height: 20),
-                    _buildHeroCard(context, hijri),
+                    const SizedBox(height: 18),
+                    _buildHeroCard(context, hijri, dailyAyah),
                     const SizedBox(height: 16),
-                    _buildPrayerRhythm(context),
+                    _buildDailyFlow(context, bookmarkedPages),
                     const SizedBox(height: 16),
-                    _buildQuickActions(context),
-                    const SizedBox(height: 16),
-                    _buildReadingJourney(context, bookmarkedPages),
-                    const SizedBox(height: 16),
-                    _buildDailyVerse(context, dailyAyah),
+                    _buildActionDeck(context),
                     const SizedBox(height: 16),
                     _buildCompanionTools(context),
                     const SizedBox(height: 24),
@@ -124,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.white.withOpacity(0.82),
+            color: AppColors.white.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFEAE0D0)),
           ),
@@ -147,8 +143,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroCard(BuildContext context, HijriCalendar hijri) {
+  Widget _buildHeroCard(
+    BuildContext context,
+    HijriCalendar hijri,
+    Ayah? dailyAyah,
+  ) {
     final nextPrayer = _nextPrayer;
+    final verseSurah = dailyAyah == null
+        ? null
+        : QuranService.getSurahByNumber(dailyAyah.surahNumber);
     final countdown = nextPrayer == null
         ? '--:--'
         : AppFormatters.countdown(nextPrayer.time.difference(_now));
@@ -168,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald.withOpacity(0.28),
+            color: AppColors.emerald.withValues(alpha: 0.28),
             blurRadius: 34,
             offset: const Offset(0, 16),
           ),
@@ -182,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.14),
+                  color: Colors.white.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(Icons.auto_awesome, color: Colors.white),
@@ -192,14 +195,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(
                   'Your next pause for prayer',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.88),
+                        color: Colors.white.withValues(alpha: 0.88),
                       ),
                 ),
               ),
               Text(
                 AppFormatters.formatShortDate(_now),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withOpacity(0.72),
+                      color: Colors.white.withValues(alpha: 0.72),
                     ),
               ),
             ],
@@ -218,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? 'Refresh location and prayer data to continue.'
                 : '${AppFormatters.formatTime(nextPrayer.time)} • starts in $countdown',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.86),
+                  color: Colors.white.withValues(alpha: 0.86),
                 ),
           ),
           const SizedBox(height: 22),
@@ -243,24 +246,64 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.10),
+              color: Colors.white.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withOpacity(0.10)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.explore_rounded, color: Colors.white70),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    LocationService.currentPosition == null
-                        ? 'Location unavailable. Open Prayer to refresh and align qibla accurately.'
-                        : 'Qibla ${LocationService.getQiblaDirection().toStringAsFixed(0)}° • Your spiritual rhythm is ready.',
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _HeroSignal(
+                      icon: Icons.explore_rounded,
+                      label: LocationService.currentPosition == null
+                          ? 'Location unavailable'
+                          : 'Qibla ${LocationService.getQiblaDirection().toStringAsFixed(0)}°',
+                    ),
+                    if (verseSurah != null)
+                      _HeroSignal(
+                        icon: Icons.auto_stories_rounded,
+                        label:
+                            '${verseSurah.englishName} ${dailyAyah!.numberInSurah}',
+                      ),
+                  ],
+                ),
+                if (dailyAyah != null) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    'Daily reminder',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withOpacity(0.88),
+                          color: Colors.white.withValues(alpha: 0.70),
+                          fontWeight: FontWeight.w700,
                         ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  Text(
+                    dailyAyah.text.replaceFirst('\ufeff', ''),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontFamily: QuranService.selectedFontOption.fontFamily,
+                          height: 1.65,
+                        ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    LocationService.currentPosition == null
+                        ? 'Open Prayer to refresh location and align qibla accurately.'
+                        : 'The next prayer, your dates, and a quiet Quran reminder stay connected here.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.84),
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -269,21 +312,90 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPrayerRhythm(BuildContext context) {
+  Widget _buildDailyFlow(BuildContext context, int bookmarkedPages) {
+    final currentPage = QuranService.currentPage;
+    final surahName = QuranService.getSurahNamesForPage(currentPage);
+    final juz = QuranService.getJuzForPage(currentPage);
     final prayers = PrayerService.currentPrayerTimes?.getAllPrayerTimes() ?? const <PrayerTimeInfo>[];
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: const Color(0xF0EBDDDE)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SectionHeading(
-              title: 'Prayer Rhythm',
-              subtitle: 'See the day at a glance without opening the full schedule.',
-              actionLabel: 'Open Prayer',
-              onTap: () => _openScreen(context, const PrayerScreen()),
+              title: 'Today\'s Flow',
+              subtitle: 'Prayer rhythm, Quran continuity, and your next gentle action in one composed view.',
+              actionLabel: 'Reader',
+              onTap: () => _openScreen(context, const QuranScreen()),
             ),
             const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(26),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Reading resume',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.slate,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Page $currentPage',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$surahName${juz == null ? '' : ' • Juz $juz'}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _InlineMetricPill(label: '$bookmarkedPages bookmarks'),
+                      _InlineMetricPill(
+                        label: _nextPrayer == null
+                            ? 'Prayer loading'
+                            : 'Next: ${_nextPrayer!.name}',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.icon(
+                    onPressed: () => _openScreen(context, const QuranScreen()),
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: Text('Resume from page $currentPage'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Prayer rhythm',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
             if (prayers.isEmpty)
               Text(
                 'Prayer data is still loading.',
@@ -293,41 +405,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: prayers.map((prayer) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: prayer.isNext
-                          ? AppColors.emerald.withOpacity(0.10)
-                          : AppColors.cream,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: prayer.isNext
-                            ? AppColors.emerald.withOpacity(0.30)
-                            : const Color(0xFFE9DECF),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          prayer.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: prayer.isNext
-                                    ? AppColors.emerald
-                                    : AppColors.ink,
-                              ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          AppFormatters.formatTime(prayer.time),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                children: prayers
+                    .map(
+                      (prayer) => _PrayerRhythmChip(prayer: prayer),
+                    )
+                    .toList(),
               ),
           ],
         ),
@@ -335,190 +417,55 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Core Actions', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionTile(
-                icon: Icons.menu_book_rounded,
-                accent: AppColors.emerald,
-                title: 'Resume Quran',
-                subtitle: 'Continue from page ${QuranService.currentPage}',
-                onTap: () => _openScreen(context, const QuranScreen()),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionTile(
-                icon: Icons.self_improvement_rounded,
-                accent: AppColors.gold,
-                title: 'Morning Adhkar',
-                subtitle: 'Steady your day with remembrance',
-                onTap: () => _openScreen(context, const AdhkarScreen()),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionTile(
-                icon: Icons.touch_app_rounded,
-                accent: AppColors.moss,
-                title: 'Tasbih Flow',
-                subtitle: 'Track dhikr with calm feedback',
-                onTap: () => _openScreen(context, const TasbihScreen()),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionTile(
-                icon: Icons.schedule_rounded,
-                accent: AppColors.rose,
-                title: 'Prayer Detail',
-                subtitle: 'Open qibla, alerts, and schedule',
-                onTap: () => _openScreen(context, const PrayerScreen()),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReadingJourney(BuildContext context, int bookmarkedPages) {
-    final currentPage = QuranService.currentPage;
-    final surahName = QuranService.getSurahNamesForPage(currentPage);
-    final juz = QuranService.getJuzForPage(currentPage);
-
-    return Card(
+  Widget _buildActionDeck(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFEDE2D2)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeading(
-              title: 'Reading Journey',
-              subtitle: 'Resume, bookmark, and stay close to your current reading rhythm.',
-              actionLabel: 'Reader',
-              onTap: () => _openScreen(context, const QuranScreen()),
+            Text('Continue with intention', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              'The most useful actions stay close without breaking the calm rhythm of the page.',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _FeatureMetric(
-                    label: 'Last Page',
-                    value: '$currentPage',
-                    detail: surahName,
+                  child: _QuickActionTile(
+                    icon: Icons.self_improvement_rounded,
+                    accent: AppColors.gold,
+                    title: 'Adhkar',
+                    subtitle: 'Morning and evening remembrance',
+                    onTap: () => _openScreen(context, const AdhkarScreen()),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _FeatureMetric(
-                    label: 'Bookmarks',
-                    value: '$bookmarkedPages',
-                    detail: bookmarkedPages == 1 ? 'saved stop' : 'saved stops',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _FeatureMetric(
-                    label: 'Current Juz',
-                    value: juz?.toString() ?? '--',
-                    detail: 'reading anchor',
+                  child: _QuickActionTile(
+                    icon: Icons.touch_app_rounded,
+                    accent: AppColors.moss,
+                    title: 'Tasbih',
+                    subtitle: 'Count dhikr with focus',
+                    onTap: () => _openScreen(context, const TasbihScreen()),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            FilledButton.icon(
-              onPressed: () => _openScreen(context, const QuranScreen()),
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: Text('Resume from page $currentPage'),
+            const SizedBox(height: 12),
+            _ToolRow(
+              title: 'Prayer detail and qibla',
+              subtitle: 'Open the full schedule, compass, and notification settings.',
+              icon: Icons.schedule_rounded,
+              onTap: () => _openScreen(context, const PrayerScreen()),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDailyVerse(BuildContext context, Ayah? ayah) {
-    final surah = ayah == null ? null : QuranService.getSurahByNumber(ayah.surahNumber);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeading(
-              title: 'Daily Verse',
-              subtitle: 'A quiet anchor for today’s reflection.',
-            ),
-            const SizedBox(height: 18),
-            if (ayah == null)
-              Text(
-                'Daily verse unavailable until Quran data is loaded.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
-            else ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.cream,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Text(
-                  ayah.text.replaceFirst('\ufeff', ''),
-                  textDirection: TextDirection.rtl,
-                  textAlign: TextAlign.right,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontFamily: QuranService.selectedFontOption.fontFamily,
-                        height: 1.8,
-                        color: AppColors.ink,
-                      ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${surah?.englishName ?? 'Surah'} • Ayah ${ayah.numberInSurah}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5E8CA),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      surah?.englishNameTranslation ?? 'Reflection',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.ink,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Let this verse set the emotional tone of your day. Continue reading to stay connected to the wider passage.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.slate,
-                    ),
-              ),
-            ],
           ],
         ),
       ),
@@ -532,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeading(
+            const _SectionHeading(
               title: 'Spiritual Companion',
               subtitle: 'Keep your practice calm, regular, and easy to return to.',
             ),
@@ -591,7 +538,7 @@ class _HeroMetric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -600,7 +547,7 @@ class _HeroMetric extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
           ),
           const SizedBox(height: 8),
@@ -609,6 +556,42 @@ class _HeroMetric extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroSignal extends StatelessWidget {
+  const _HeroSignal({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white.withValues(alpha: 0.86)),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.86),
+                  fontWeight: FontWeight.w600,
                 ),
           ),
         ],
@@ -646,7 +629,7 @@ class _QuickActionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(0.10),
+                  color: accent.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Icon(icon, color: accent),
@@ -666,33 +649,69 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
-class _FeatureMetric extends StatelessWidget {
-  const _FeatureMetric({
-    required this.label,
-    required this.value,
-    required this.detail,
-  });
+class _InlineMetricPill extends StatelessWidget {
+  const _InlineMetricPill({required this.label});
 
   final String label;
-  final String value;
-  final String detail;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
+class _PrayerRhythmChip extends StatelessWidget {
+  const _PrayerRhythmChip({required this.prayer});
+
+  final PrayerTimeInfo prayer;
+
+  @override
+  Widget build(BuildContext context) {
+    final isEmphasized = prayer.isCurrent || prayer.isNext;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: prayer.isCurrent
+            ? const Color(0xFFF5E8CA)
+            : prayer.isNext
+                ? AppColors.emerald.withValues(alpha: 0.10)
+                : AppColors.cream,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isEmphasized
+              ? AppColors.emerald.withValues(alpha: 0.24)
+              : const Color(0xFFE9DECF),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 4),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 10),
-          Text(detail, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            prayer.name,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: isEmphasized ? AppColors.emerald : AppColors.ink,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            AppFormatters.formatTime(prayer.time),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ],
       ),
     );

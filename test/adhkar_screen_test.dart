@@ -96,7 +96,9 @@ void main() {
     expect(find.text('Evening'), findsOneWidget);
     expect(find.text('Morning Adhkar'), findsOneWidget);
 
-    final dua76Title = find.text('Dua 76 — The Three Quls (Recite 3x each)');
+    final dua76Title = find.text(
+      'Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
+    );
     await tester.ensureVisible(dua76Title);
     await tester.pump(const Duration(milliseconds: 200));
 
@@ -118,14 +120,7 @@ void main() {
         of: dua76Card,
         matching: find.text('Needs review'),
       ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: dua76Card,
-        matching: find.textContaining('only instructs reciting Al-Ikhlas'),
-      ),
-      findsOneWidget,
+      findsNothing,
     );
 
     final copyButton = find.byKey(const ValueKey<String>('adhkar-copy-Dua 76'));
@@ -136,9 +131,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('Adhkar copied to clipboard'), findsOneWidget);
-    expect(copiedText, contains('Dua 76'));
+    expect(
+      copiedText,
+      contains('Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas'),
+    );
+    expect(copiedText, isNot(contains('Dua 76')));
     expect(copiedText, contains('Repeat: 3x each'));
-    expect(copiedText, contains('Review note:'));
+    expect(copiedText, isNot(contains('Review note:')));
+
+    expect(find.text('Salawat upon the Prophet ﷺ'), findsOneWidget);
 
     await tester.tap(find.text('Evening'));
     await tester.pump();
@@ -147,7 +148,9 @@ void main() {
     expect(find.text('Evening Adhkar'), findsOneWidget);
     expect(find.text('Morning Adhkar'), findsNothing);
 
-    final eveningTitle = find.text('Dua 76 — The Three Quls (Recite 3x each)');
+    final eveningTitle = find.text(
+      'Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
+    );
     await tester.ensureVisible(eveningTitle);
     await tester.pump(const Duration(milliseconds: 200));
 
@@ -169,7 +172,8 @@ void main() {
         of: eveningCard,
         matching: find.text('Needs review'),
       ),
-      findsOneWidget,
+      findsNothing,
     );
+    expect(find.text('Salawat upon the Prophet ﷺ'), findsOneWidget);
   });
 }

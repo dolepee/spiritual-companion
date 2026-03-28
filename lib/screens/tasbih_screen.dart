@@ -105,6 +105,19 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
     }
   }
 
+  Future<void> _decrementCount() async {
+    if (_count == 0 && _totalCount == 0) return;
+    setState(() {
+      if (_count > 0) {
+        _count -= 1;
+      }
+      if (_totalCount > 0) {
+        _totalCount -= 1;
+      }
+    });
+    await _saveSettings();
+  }
+
   Future<void> _completeRound() async {
     final now = DateTime.now();
     final todayKey = _dateKey(now);
@@ -178,14 +191,10 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
               const SizedBox(height: 18),
               _buildHeroCard(context, goalProgress),
               const SizedBox(height: 16),
-              _buildDhikrSelector(context),
-              const SizedBox(height: 16),
               _buildCounter(context, progress),
+              const SizedBox(height: 16),
+              _buildSessionDeck(context),
               const SizedBox(height: 18),
-              _buildStatsGrid(context),
-              const SizedBox(height: 16),
-              _buildTargetChooser(context),
-              const SizedBox(height: 16),
               _buildActionRow(context),
             ],
           ),
@@ -224,7 +233,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald.withOpacity(0.28),
+            color: AppColors.emerald.withValues(alpha: 0.28),
             blurRadius: 34,
             offset: const Offset(0, 16),
           ),
@@ -236,7 +245,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
           Text(
             'Current dhikr',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.82),
+                  color: Colors.white.withValues(alpha: 0.82),
                 ),
           ),
           const SizedBox(height: 10),
@@ -279,7 +288,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
             child: LinearProgressIndicator(
               value: goalProgress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.14),
+              backgroundColor: Colors.white.withValues(alpha: 0.14),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
             ),
           ),
@@ -287,7 +296,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
           Text(
             'Daily goal: $_dailyCompletedRounds of $_dailyGoalRounds rounds',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.82),
+                  color: Colors.white.withValues(alpha: 0.82),
                 ),
           ),
         ],
@@ -295,64 +304,50 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
     );
   }
 
-  Widget _buildDhikrSelector(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Dhikr Set', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              'Keep a few common remembrances ready without opening a separate settings dialog.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: _commonDhikr.map((dhikr) {
-                final selected = _selectedDhikr == dhikr;
-                return ChoiceChip(
-                  selected: selected,
-                  label: Text(
-                    dhikr,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontFamily: 'Amiri',
-                          color: selected ? AppColors.emerald : AppColors.ink,
-                        ),
-                  ),
-                  onSelected: (_) => _setDhikr(dhikr),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCounter(BuildContext context, double progress) {
-    return Card(
+    final remaining = (_targetCount - _count).clamp(0, _targetCount);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: const Color(0xFFECE2D3)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
         child: Column(
           children: [
             SizedBox(
-              width: 280,
-              height: 280,
+              width: 292,
+              height: 292,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  SizedBox(
-                    width: 250,
-                    height: 250,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 14,
-                      backgroundColor: const Color(0xFFE7DED0),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.emerald),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: progress),
+                    duration: const Duration(milliseconds: 320),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animatedProgress, child) {
+                      return SizedBox(
+                        width: 262,
+                        height: 262,
+                        child: CircularProgressIndicator(
+                          value: animatedProgress,
+                          strokeWidth: 14,
+                          backgroundColor: const Color(0xFFE7DED0),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.emerald,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Container(
+                    width: 238,
+                    height: 238,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.white.withValues(alpha: 0.35),
                     ),
                   ),
                   AnimatedBuilder(
@@ -365,6 +360,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                     },
                     child: GestureDetector(
                       onTap: _incrementCount,
+                      onLongPress: _decrementCount,
                       child: Container(
                         width: 220,
                         height: 220,
@@ -380,7 +376,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.emerald.withOpacity(0.26),
+                              color: AppColors.emerald.withValues(alpha: 0.26),
                               blurRadius: 30,
                               offset: const Offset(0, 18),
                             ),
@@ -399,7 +395,14 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                             Text(
                               'Tap to count',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.88),
+                                    color: Colors.white.withValues(alpha: 0.88),
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '$remaining remaining',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.78),
                                   ),
                             ),
                           ],
@@ -415,53 +418,65 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
               '${(progress * 100).toInt()}% of this round complete',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                _SessionPill(label: 'Today $_dailyCompletedRounds/$_dailyGoalRounds'),
+                _SessionPill(label: 'Lifetime $_totalCount'),
+                const _SessionPill(label: 'Long press to undo'),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            label: 'Current round',
-            value: '$_count / $_targetCount',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            label: 'Today',
-            value: '$_dailyCompletedRounds rounds',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            label: 'Lifetime taps',
-            value: _totalCount.toString(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTargetChooser(BuildContext context) {
-    return Card(
+  Widget _buildSessionDeck(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFECE2D3)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Round Target', style: Theme.of(context).textTheme.titleLarge),
+            Text('Session setup', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'Choose a target that matches your flow. The round resets automatically when you complete it.',
+              'Choose the remembrance, set the round target, and stay aware of your spiritual momentum.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
+            Text('Dhikr set', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: _commonDhikr.map((dhikr) {
+                final selected = _selectedDhikr == dhikr;
+                return ChoiceChip(
+                  selected: selected,
+                  label: Text(
+                    dhikr,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'Amiri',
+                          color: selected ? AppColors.emerald : AppColors.ink,
+                        ),
+                  ),
+                  onSelected: (_) => _setDhikr(dhikr),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 18),
+            Text('Round target', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 10),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -472,6 +487,31 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                   onSelected: (_) => _setTarget(target),
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    label: 'Current round',
+                    value: '$_count / $_targetCount',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    label: 'Today',
+                    value: '$_dailyCompletedRounds rounds',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    label: 'Streak',
+                    value: '$_currentStreak days',
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -508,6 +548,30 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
   }
 }
 
+class _SessionPill extends StatelessWidget {
+  const _SessionPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.cream,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+    );
+  }
+}
+
 class _HeroStat extends StatelessWidget {
   const _HeroStat({
     required this.label,
@@ -522,7 +586,7 @@ class _HeroStat extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -531,7 +595,7 @@ class _HeroStat extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
           ),
           const SizedBox(height: 4),

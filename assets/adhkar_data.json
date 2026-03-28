@@ -15,16 +15,15 @@
     },
     {
       "duaId": "Dua 76",
-      "title": "The Three Quls (Recite 3x each)",
-      "arabic": "Al-Ikhlas (112:1-4):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ ۝\n\nAl-Falaq (113:1-5):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ۝\n\nAn-Nas (114:1-6):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ ۝",
-      "transcription": "Al-Ikhlas (112:1-4):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul Huwallaahu 'Ahad.\n2. Allaahus-Samad.\n3. Lam yalid wa lam yoolad.\n4. Wa lam yakun lahu kufuwan 'ahad.\n\nAl-Falaq (113:1-5):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul 'a'oothu birabbil-falaq.\n2. Min sharri maa khalaq.\n3. Wa min sharri ghaasiqin 'ithaa waqab.\n4. Wa min sharrin-naffaa-thaa-ti fil-'uqad.\n5. Wa min sharri haasidin 'ithaa hasad.\n\nAn-Nas (114:1-6):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul 'a'oothu birabbin-naas.\n2. Malikin-naas.\n3. 'Ilaahin-naas.\n4. Min sharril-waswaasil-khannaas.\n5. Allathee yuwaswisu fee sudoorin-naas.\n6. Minal-jinnati wannaas.",
-      "english": "Al-Ikhlas (112:1-4):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: He is Allah (the) One.\n2. The Self-Sufficient Master, Whom all creatures need,\n3. He begets not nor was He begotten,\n4. And there is none equal to Him.\n\nAl-Falaq (113:1-5):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: I seek refuge with (Allah) the Lord of the daybreak,\n2. From the evil of what He has created,\n3. And from the evil of the darkening (night) as it comes with its darkness,\n4. And from the evil of those who practice witchcraft when they blow in the knots,\n5. And from the evil of the envier when he envies.\n\nAn-Nas (114:1-6):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: I seek refuge with (Allah) the Lord of mankind,\n2. The King of mankind,\n3. The God of mankind,\n4. From the evil of the whisperer who withdraws,\n5. Who whispers in the breasts of mankind,\n6. Of jinns and men.",
+      "title": "Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas",
+      "arabic": "سُورَةُ الْإِخْلَاصِ، وَسُورَةُ الْفَلَقِ، وَسُورَةُ النَّاسِ",
+      "transcription": "Soorat Al-Ikhlaas, Soorat Al-Falaq, wa Soorat An-Naas.",
+      "english": "Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas.",
       "reference": "Al-Ikhlas 112:1-4, Al-Falaq 113:1-5, An-Nas 114:1-6. Whoever recites these three times in the morning and in the evening, they will suffice him (as a protection) against everything. The Hadith was reported by Abu Dawud 4/322, and At-Tirmithi 5/567. See Al-Albani's Sahih At-Tirmithi 3/182.",
       "category": "morning",
       "repeatCount": "3x each",
       "sourceIndex": 2,
-      "uncertain": true,
-      "notes": "The raw source in assets/adhkar.txt only instructs reciting Al-Ikhlas, Al-Falaq, and An-Nas three times each. The existing fuller surah text was retained."
+      "uncertain": false
     },
     {
       "duaId": "Dua 77",
@@ -51,18 +50,6 @@
       "uncertain": false
     },
     {
-      "duaId": "Dua 79",
-      "title": "Sayyid al-Istighfar (Master of Seeking Forgiveness)",
-      "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُبِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
-      "transcription": "Allaahumma 'Anta Rabbee laa 'ilaaha 'illaa 'Anta, khalaqtanee wa 'anaa 'abduka, wa 'anaa 'alaa 'ahdika wa wa'dika mas-tata'tu, 'a'oothu bika min sharri maa sana'tu, 'aboo'u laka bini'matika 'alayya, wa 'aboo'u bithanbee faghfir lee fa'innahu laa yaghfiruth-thunooba 'illaa 'Anta.",
-      "english": "O Allah, You are my Lord, there is none worthy of worship but You. You created me and I am your slave. I keep Your covenant, and my pledge to You so far as I am able. I seek refuge in You from the evil of what I have done. I admit to Your blessings upon me, and I admit to my misdeeds. Forgive me, for there is none who may forgive sins but You.",
-      "reference": "Whoever recites this with conviction in the evening and dies during that night shall enter Paradise, and whoever recites it with conviction in the morning and dies during that day shall enter Paradise. Al-Bukhari 7/150. Other reports are in An-Nasa'i and At-Tirmithi.",
-      "category": "morning",
-      "repeatCount": "1x",
-      "sourceIndex": 7,
-      "uncertain": false
-    },
-    {
       "duaId": "Dua 80",
       "title": "Morning Testimony",
       "arabic": "اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلَائِكَتِكَ وَجَمِيعَ خَلْقِكَ أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ",
@@ -84,6 +71,18 @@
       "category": "morning",
       "repeatCount": "1x",
       "sourceIndex": 6,
+      "uncertain": false
+    },
+    {
+      "duaId": "Dua 79",
+      "title": "Sayyid al-Istighfar (Master of Seeking Forgiveness)",
+      "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُبِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+      "transcription": "Allaahumma 'Anta Rabbee laa 'ilaaha 'illaa 'Anta, khalaqtanee wa 'anaa 'abduka, wa 'anaa 'alaa 'ahdika wa wa'dika mas-tata'tu, 'a'oothu bika min sharri maa sana'tu, 'aboo'u laka bini'matika 'alayya, wa 'aboo'u bithanbee faghfir lee fa'innahu laa yaghfiruth-thunooba 'illaa 'Anta.",
+      "english": "O Allah, You are my Lord, there is none worthy of worship but You. You created me and I am your slave. I keep Your covenant, and my pledge to You so far as I am able. I seek refuge in You from the evil of what I have done. I admit to Your blessings upon me, and I admit to my misdeeds. Forgive me, for there is none who may forgive sins but You.",
+      "reference": "Whoever recites this with conviction in the evening and dies during that night shall enter Paradise, and whoever recites it with conviction in the morning and dies during that day shall enter Paradise. Al-Bukhari 7/150. Other reports are in An-Nasa'i and At-Tirmithi.",
+      "category": "morning",
+      "repeatCount": "1x",
+      "sourceIndex": 7,
       "uncertain": false
     },
     {
@@ -128,12 +127,11 @@
       "arabic": "اللَّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَالأَرْضِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ أَنْتَ، أَعُوذُبِكَ مِنْ شَرِّ نَفْسِي، وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا، أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ",
       "transcription": "Allaahumma 'Aalimal-ghaybi wash-shahaadati faatiras-samaawaati wal'ardhi, Rabba kulli shay'in wa maleekahu, 'ash-hadu 'an laa 'ilaaha 'illaa 'Anta, 'a'oothu bika min sharri nafsee, wa min sharrish-shaytaani wa shirkihi, wa 'an 'aqtarifa 'alaa nafsee soo'an, 'aw 'ajurrahu 'ilaa Muslimin.",
       "english": "O Allah, Knower of the unseen and the evident, Maker of the heavens and the earth, Lord of everything and its Possessor, I bear witness that there is none worthy of worship but You. I seek refuge in You from the evil of my soul and from the evil of Satan and his helpers. (And) that I should bring evil upon my soul or direct it to a Muslim.",
-      "reference": "",
+      "reference": "Sahih At-Tirmithi 3/142 and Abu Dawud.",
       "category": "morning",
       "repeatCount": "1x",
       "sourceIndex": 11,
-      "uncertain": true,
-      "notes": "Reference missing from the supplied source and existing dataset; pending review."
+      "uncertain": false
     },
     {
       "duaId": "Dua 86",
@@ -209,29 +207,15 @@
     },
     {
       "duaId": "Dua 92",
-      "title": "Tahleel (10x)",
+      "title": "Tahleel",
       "arabic": "لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
       "transcription": "Laa 'ilaaha 'illallaahu wahdahu laa shareeka lahu, lahul-mulku wa lahul-hamdu, wa Huwa 'alaa kulli shay'in Qadeer.",
       "english": "None has the right to be worshipped but Allah alone, Who has no partner. His is the dominion and His is the praise and He is Able to do all things.",
-      "reference": "Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.",
+      "reference": "1. Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.\n2. Abu Hurayrah narrated that the Prophet ﷺ said that whoever says it one hundred times in the morning will have one hundred Hasanaat written for him, one hundred misdeeds erased, the reward of freeing a slave, and protection from Satan until evening. Ahmad 8/704, 16/293. Its chain of transmission is good (Hasan), Ibn Baz, p. 44.",
       "category": "morning",
-      "repeatCount": "10x",
+      "repeatCount": "10x or 100x",
       "sourceIndex": 18,
-      "uncertain": false,
-      "notes": "The raw source combines the 10x and 100x morning tahleel variants; this dataset preserves a separate 10x entry."
-    },
-    {
-      "duaId": "Dua 93",
-      "title": "Tahleel (100x in the morning)",
-      "arabic": "لَا إِلٰهَ إِلَّا اللّٰهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
-      "transcription": "Laa 'ilaaha 'illallaahu wahdahu laa shareeka lahu, lahul-mulku wa lahul-hamdu, wa Huwa 'alaa kulli shay'in Qadeer.",
-      "english": "None has the right to be worshipped but Allah alone, Who has no partner. His is the dominion and His is the praise and He is Able to do all things.",
-      "reference": "1. Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.\n2. Abu Hurayrah narrated that the Prophet ﷺ said: \"Allah will write one hundred Hasanat for whoever says this ten times in the morning, and forgive him one hundred misdeeds. He will have the reward of freeing a slave and will be protected from Satan throughout the day unto dusk.\" Ahmad 8/704, 16/293. Its chain of transmission is good (Hasan), Ibn Baz, p. 44.\n3. Whoever recites this in the morning will have the reward of freeing a slave from the Children of Isma'il. Ten Hasanaat will be written for him, and he will be forgiven ten misdeeds, raised up ten degrees, and be protected from Satan until evening. Abu Dawud 4/319, 3/957, Ahmad 4/60, Ibn Majah 2/331, Ibn Al-Qayyim Zadul-Ma'ad 2/388. Its chain of transmission is sound (Sahih). Al-Albani 1/270.",
-      "category": "morning",
-      "repeatCount": "100x",
-      "sourceIndex": 18,
-      "uncertain": false,
-      "notes": "The raw source combines the 10x and 100x morning tahleel variants; this dataset preserves a separate 100x entry."
+      "uncertain": false
     },
     {
       "duaId": "Dua 94",
@@ -275,12 +259,11 @@
       "arabic": "اللّٰهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ",
       "transcription": "Allahumma salli wa sallim 'alaa nabiyyinaa Muhammadin.",
       "english": "O Allah, we ask You for peace and blessings upon our Prophet Muhammad.",
-      "reference": "",
+      "reference": "Whoever recites blessings upon me ten times in the morning and ten times in the evening will obtain my intercession on the Day of Resurrection. At-Tabarani reported it with two chains; one is reliable (Jayyid). See Al-Haythami's Majma' Az-Zawa'id 10/120 and Al-Albani's Sahih At-Targhib wat-Tarhib 1/273.",
       "category": "morning",
       "repeatCount": "10x",
       "sourceIndex": 22,
-      "uncertain": true,
-      "notes": "Reference missing from the supplied source and existing dataset; pending review."
+      "uncertain": false
     }
   ],
   "evening": [
@@ -298,16 +281,15 @@
     },
     {
       "duaId": "Dua 76",
-      "title": "The Three Quls (Recite 3x each)",
-      "arabic": "Al-Ikhlas (112:1-4):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ ۝\n\nAl-Falaq (113:1-5):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ ۝\n\nAn-Nas (114:1-6):\nبِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ\nقُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ ۝",
-      "transcription": "Al-Ikhlas (112:1-4):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul Huwallaahu 'Ahad.\n2. Allaahus-Samad.\n3. Lam yalid wa lam yoolad.\n4. Wa lam yakun lahu kufuwan 'ahad.\n\nAl-Falaq (113:1-5):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul 'a'oothu birabbil-falaq.\n2. Min sharri maa khalaq.\n3. Wa min sharri ghaasiqin 'ithaa waqab.\n4. Wa min sharrin-naffaa-thaa-ti fil-'uqad.\n5. Wa min sharri haasidin 'ithaa hasad.\n\nAn-Nas (114:1-6):\nBismillaahir-Rahmaanir-Raheem.\n1. Qul 'a'oothu birabbin-naas.\n2. Malikin-naas.\n3. 'Ilaahin-naas.\n4. Min sharril-waswaasil-khannaas.\n5. Allathee yuwaswisu fee sudoorin-naas.\n6. Minal-jinnati wannaas.",
-      "english": "Al-Ikhlas (112:1-4):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: He is Allah (the) One.\n2. The Self-Sufficient Master, Whom all creatures need,\n3. He begets not nor was He begotten,\n4. And there is none equal to Him.\n\nAl-Falaq (113:1-5):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: I seek refuge with (Allah) the Lord of the daybreak,\n2. From the evil of what He has created,\n3. And from the evil of the darkening (night) as it comes with its darkness,\n4. And from the evil of those who practice witchcraft when they blow in the knots,\n5. And from the evil of the envier when he envies.\n\nAn-Nas (114:1-6):\nWith the Name of Allah, the Most Gracious, the Most Merciful.\n1. Say: I seek refuge with (Allah) the Lord of mankind,\n2. The King of mankind,\n3. The God of mankind,\n4. From the evil of the whisperer who withdraws,\n5. Who whispers in the breasts of mankind,\n6. Of jinns and men.",
+      "title": "Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas",
+      "arabic": "سُورَةُ الْإِخْلَاصِ، وَسُورَةُ الْفَلَقِ، وَسُورَةُ النَّاسِ",
+      "transcription": "Soorat Al-Ikhlaas, Soorat Al-Falaq, wa Soorat An-Naas.",
+      "english": "Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas.",
       "reference": "Al-Ikhlas 112:1-4, Al-Falaq 113:1-5, An-Nas 114:1-6. Whoever recites these three times in the morning and in the evening, they will suffice him (as a protection) against everything. The Hadith was reported by Abu Dawud 4/322, and At-Tirmithi 5/567. See Al-Albani's Sahih At-Tirmithi 3/182.",
       "category": "evening",
       "repeatCount": "3x each",
       "sourceIndex": 2,
-      "uncertain": true,
-      "notes": "The raw source in assets/adhkar.txt only instructs reciting Al-Ikhlas, Al-Falaq, and An-Nas three times each. The existing fuller surah text was retained."
+      "uncertain": false
     },
     {
       "duaId": "Dua 77",
@@ -411,12 +393,11 @@
       "arabic": "اللَّهُمَّ عَالِمَ الْغَيْبِ وَالشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَالأَرْضِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ أَنْتَ، أَعُوذُبِكَ مِنْ شَرِّ نَفْسِي، وَمِنْ شَرِّ الشَّيْطَانِ وَشِرْكِهِ، وَأَنْ أَقْتَرِفَ عَلَى نَفْسِي سُوءًا، أَوْ أَجُرَّهُ إِلَى مُسْلِمٍ",
       "transcription": "Allaahumma 'Aalimal-ghaybi wash-shahaadati faatiras-samaawaati wal'ardhi, Rabba kulli shay'in wa maleekahu, 'ash-hadu 'an laa 'ilaaha 'illaa 'Anta, 'a'oothu bika min sharri nafsee, wa min sharrish-shaytaani wa shirkihi, wa 'an 'aqtarifa 'alaa nafsee soo'an, 'aw 'ajurrahu 'ilaa Muslimin.",
       "english": "O Allah, Knower of the unseen and the evident, Maker of the heavens and the earth, Lord of everything and its Possessor, I bear witness that there is none worthy of worship but You. I seek refuge in You from the evil of my soul and from the evil of Satan and his helpers. (And) that I should bring evil upon my soul or direct it to a Muslim.",
-      "reference": "",
+      "reference": "Sahih At-Tirmithi 3/142 and Abu Dawud.",
       "category": "evening",
       "repeatCount": "1x",
       "sourceIndex": 11,
-      "uncertain": true,
-      "notes": "Reference missing from the supplied source and existing dataset; pending review."
+      "uncertain": false
     },
     {
       "duaId": "Dua 86",
@@ -479,19 +460,6 @@
       "uncertain": false
     },
     {
-      "duaId": "Dua 91",
-      "title": "Tasbeeh (100x)",
-      "arabic": "سُبْحَانَ اللهِ وَبِحَمْدِهِ",
-      "transcription": "Subhaanallaahi wa bihamdihi.",
-      "english": "Glory is to Allah and praise is to Him.",
-      "reference": "Whoever recites this one hundred times in the morning and in the evening will not be surpassed on the Day of Resurrection by anyone having done better than this except for someone who had recited it more. Al-Bukhari 4/2071.",
-      "category": "evening",
-      "repeatCount": "100x",
-      "sourceIndex": null,
-      "uncertain": true,
-      "notes": "Not present in the raw morning/evening WhatsApp-style source file assets/adhkar.txt; retained from the existing dataset."
-    },
-    {
       "duaId": "Dua 92",
       "title": "Tahleel (10x)",
       "arabic": "لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
@@ -502,19 +470,6 @@
       "repeatCount": "10x",
       "sourceIndex": 17,
       "uncertain": false
-    },
-    {
-      "duaId": "Dua 96",
-      "title": "Istighfar (100x daily)",
-      "arabic": "أَسْتَغْفِرُ اللّٰهَ وَأَتُوبُ إِلَيْهِ",
-      "transcription": "'Astaghfirullaaha wa 'atoobu 'ilayhi.",
-      "english": "I seek the forgiveness of Allah and repent to Him.",
-      "reference": "Al-Bukhari, cf. Al-Asqalani, Fathul-Bari 11/101, Muslim 4/2075.",
-      "category": "evening",
-      "repeatCount": "100x",
-      "sourceIndex": null,
-      "uncertain": true,
-      "notes": "Not present in the raw morning/evening WhatsApp-style source file assets/adhkar.txt; retained from the existing dataset."
     },
     {
       "duaId": "Dua 97",
@@ -534,12 +489,11 @@
       "arabic": "اللّٰهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ",
       "transcription": "Allahumma salli wa sallim 'alaa nabiyyinaa Muhammadin.",
       "english": "O Allah, we ask You for peace and blessings upon our Prophet Muhammad.",
-      "reference": "",
+      "reference": "Whoever recites blessings upon me ten times in the morning and ten times in the evening will obtain my intercession on the Day of Resurrection. At-Tabarani reported it with two chains; one is reliable (Jayyid). See Al-Haythami's Majma' Az-Zawa'id 10/120 and Al-Albani's Sahih At-Targhib wat-Tarhib 1/273.",
       "category": "evening",
       "repeatCount": "10x",
       "sourceIndex": 19,
-      "uncertain": true,
-      "notes": "Reference missing from the supplied source and existing dataset; pending review."
+      "uncertain": false
     }
   ]
 }

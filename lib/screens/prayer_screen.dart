@@ -178,7 +178,12 @@ class _PrayerScreenState extends State<PrayerScreen> {
                         timeUntilNext: timeUntilNext,
                       ),
                       const SizedBox(height: 16),
-                      _buildScheduleCard(context, schedule),
+                      _buildScheduleCard(
+                        context,
+                        schedule,
+                        currentPrayer: currentPrayer,
+                        nextPrayer: nextPrayer,
+                      ),
                       const SizedBox(height: 16),
                       _buildQiblaCard(context),
                       const SizedBox(height: 16),
@@ -224,6 +229,9 @@ class _PrayerScreenState extends State<PrayerScreen> {
     required Duration timeUntilNext,
   }) {
     final qiblaDirection = LocationService.getQiblaDirection();
+    final currentPrayerLabel = currentPrayer?.name ?? 'Before Fajr';
+    final countdown = AppFormatters.countdown(timeUntilNext);
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -239,7 +247,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald.withOpacity(0.28),
+            color: AppColors.emerald.withValues(alpha: 0.28),
             blurRadius: 34,
             offset: const Offset(0, 18),
           ),
@@ -252,11 +260,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _HeroBadge(
-                label: currentPrayer == null
-                    ? 'Before Fajr'
-                    : 'Current: ${currentPrayer.name}',
-              ),
+              _HeroBadge(label: 'Current: $currentPrayerLabel'),
               _HeroBadge(label: 'Qibla ${qiblaDirection.toStringAsFixed(0)}°'),
             ],
           ),
@@ -269,13 +273,45 @@ class _PrayerScreenState extends State<PrayerScreen> {
                 ),
           ),
           const SizedBox(height: 8),
-          Text(
-            nextPrayer == null
-                ? 'Refresh location and prayer access to continue.'
-                : '${AppFormatters.formatTime(nextPrayer.time)} • starts in ${AppFormatters.countdown(timeUntilNext)}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.88),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: Text(
+              nextPrayer == null
+                  ? 'Refresh location and prayer access to continue.'
+                  : '${AppFormatters.formatTime(nextPrayer.time)} • starts in $countdown',
+              key: ValueKey<String>(
+                nextPrayer == null ? 'prayer-empty' : '${nextPrayer.name}-$countdown',
+              ),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.88),
+                  ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: _PrayerFocusPanel(
+                  label: 'Current window',
+                  title: currentPrayerLabel,
+                  detail: currentPrayer == null
+                      ? 'The next prayer will open the day.'
+                      : 'Remain steady until ${AppFormatters.formatTime(nextPrayer?.time ?? currentPrayer.time)}',
                 ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PrayerFocusPanel(
+                  label: 'Next pause',
+                  title: nextPrayer?.name ?? 'Unavailable',
+                  detail: nextPrayer == null
+                      ? 'Prayer data unavailable.'
+                      : 'In $countdown',
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 22),
           Row(
@@ -307,18 +343,45 @@ class _PrayerScreenState extends State<PrayerScreen> {
     );
   }
 
-  Widget _buildScheduleCard(BuildContext context, List<PrayerTimeInfo> schedule) {
-    return Card(
+  Widget _buildScheduleCard(
+    BuildContext context,
+    List<PrayerTimeInfo> schedule, {
+    required PrayerTimeInfo? currentPrayer,
+    required PrayerTimeInfo? nextPrayer,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFECE2D3)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Daily Schedule', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              'The current prayer stays visible while the next prayer is highlighted.',
-              style: Theme.of(context).textTheme.bodySmall,
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Daily Schedule', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 4),
+                      Text(
+                        'The current prayer anchors the day while the next pause stays gently highlighted.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                _InfoPill(
+                  label: nextPrayer == null
+                      ? 'Waiting'
+                      : 'Next ${nextPrayer.name}',
+                ),
+              ],
             ),
             const SizedBox(height: 18),
             if (schedule.isEmpty)
@@ -327,83 +390,160 @@ class _PrayerScreenState extends State<PrayerScreen> {
                 style: Theme.of(context).textTheme.bodyMedium,
               )
             else
-              ...schedule.map((prayer) => _buildScheduleRow(context, prayer)),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cream,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  children: schedule.asMap().entries.map((entry) {
+                    return _buildScheduleRow(
+                      context,
+                      entry.value,
+                      isLast: entry.key == schedule.length - 1,
+                    );
+                  }).toList(),
+                ),
+              ),
+            if (currentPrayer != null) ...[
+              const SizedBox(height: 14),
+              Text(
+                'Current prayer: ${currentPrayer.name} • ${AppFormatters.formatTime(currentPrayer.time)}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.slate,
+                    ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildScheduleRow(BuildContext context, PrayerTimeInfo prayer) {
+  Widget _buildScheduleRow(
+    BuildContext context,
+    PrayerTimeInfo prayer, {
+    required bool isLast,
+  }) {
     final hasPassed = prayer.time.isBefore(_now) && !prayer.isCurrent && !prayer.isNext;
-    final backgroundColor = prayer.isCurrent
-        ? const Color(0xFFF5E8CA)
+    final accentColor = prayer.isCurrent
+        ? AppColors.gold
         : prayer.isNext
-            ? const Color(0xFFDDE9DF)
+            ? AppColors.emerald
             : hasPassed
-                ? AppColors.cream
-                : AppColors.white;
-
-    final borderColor = prayer.isCurrent || prayer.isNext
-        ? AppColors.emerald.withOpacity(0.20)
-        : const Color(0xFFEAE0D0);
+                ? AppColors.slate
+                : AppColors.moss;
+    final backgroundColor = prayer.isCurrent
+        ? const Color(0xFFF7ECD3)
+        : prayer.isNext
+            ? const Color(0xFFE4EFE7)
+            : AppColors.white;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: borderColor),
-      ),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              _iconForPrayer(prayer.name),
-              color: prayer.isCurrent || prayer.isNext
-                  ? AppColors.emerald
-                  : AppColors.slate,
+          SizedBox(
+            width: 24,
+            child: Column(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    shape: BoxShape.circle,
+                    boxShadow: prayer.isCurrent || prayer.isNext
+                        ? [
+                            BoxShadow(
+                              color: accentColor.withValues(alpha: 0.24),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+                if (!isLast)
+                  Container(
+                    width: 2,
+                    height: 78,
+                    margin: const EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE1D7C8),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  prayer.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.ink,
-                      ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: prayer.isCurrent || prayer.isNext
+                      ? accentColor.withValues(alpha: 0.22)
+                      : const Color(0xFFEAE0D0),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _statusLabel(prayer, hasPassed),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.slate,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                AppFormatters.formatTime(prayer.time),
-                style: Theme.of(context).textTheme.titleMedium,
               ),
-              const SizedBox(height: 4),
-              _StatusChip(label: _statusChipText(prayer, hasPassed)),
-            ],
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      _iconForPrayer(prayer.name),
+                      color: accentColor,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          prayer.name,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.ink,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _statusLabel(prayer, hasPassed),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.slate,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        AppFormatters.formatTime(prayer.time),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      _StatusChip(label: _statusChipText(prayer, hasPassed)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -414,8 +554,18 @@ class _PrayerScreenState extends State<PrayerScreen> {
     final qiblaDirection = LocationService.getQiblaDirection();
     final offset = ((_heading - qiblaDirection + 540) % 360) - 180;
     final aligned = offset.abs() <= 8;
+    final guidance = aligned
+        ? 'You are aligned with the qibla.'
+        : offset > 0
+            ? 'Turn ${offset.abs().toStringAsFixed(0)}° to the left.'
+            : 'Turn ${offset.abs().toStringAsFixed(0)}° to the right.';
 
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFECE2D3)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -424,7 +574,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
             Text('Qibla', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'A calmer directional view with simple alignment feedback.',
+              'A calmer directional view with clearer alignment guidance.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 18),
@@ -432,7 +582,14 @@ class _PrayerScreenState extends State<PrayerScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.cream,
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFF7F1E6),
+                    Color(0xFFF1E9DB),
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(26),
               ),
               child: Column(
@@ -451,6 +608,40 @@ class _PrayerScreenState extends State<PrayerScreen> {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ),
+                  ),
+                  const SizedBox(height: 14),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: aligned
+                          ? AppColors.emerald.withValues(alpha: 0.10)
+                          : AppColors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: aligned
+                            ? AppColors.emerald.withValues(alpha: 0.24)
+                            : const Color(0xFFE4D9C9),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          aligned
+                              ? Icons.check_circle_rounded
+                              : Icons.navigation_rounded,
+                          color: aligned ? AppColors.emerald : AppColors.gold,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            guidance,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Wrap(
@@ -485,7 +676,14 @@ class _PrayerScreenState extends State<PrayerScreen> {
       orElse: () => PrayerService.adhanAlertOptions.first,
     );
 
-    return Card(
+    final orderedToggles = _orderedPrayerToggles();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0xFFECE2D3)),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -494,65 +692,114 @@ class _PrayerScreenState extends State<PrayerScreen> {
             Text('Prayer Alerts', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'Keep alerts quiet, clear, and configurable prayer by prayer.',
+              'Quiet, configurable reminders that stay easy to understand.',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 18),
-            SwitchListTile(
-              value: _alertsEnabled,
-              onChanged: _updating ? null : _toggleAlerts,
-              title: const Text('Enable alerts'),
-              subtitle: const Text('Receive reminders for selected prayers'),
-              contentPadding: EdgeInsets.zero,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cream,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _alertsEnabled ? 'Alerts enabled' : 'Alerts paused',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _alertsEnabled
+                              ? selectedOption.title
+                              : 'Turn alerts on to receive prayer reminders.',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch.adaptive(
+                    value: _alertsEnabled,
+                    onChanged: _updating ? null : _toggleAlerts,
+                  ),
+                ],
+              ),
             ),
-            if (_alertsEnabled) ...[
-              const SizedBox(height: 8),
-              SegmentedButton<AdhanAlertMode>(
-                showSelectedIcon: false,
-                segments: PrayerService.adhanAlertOptions
-                    .map(
-                      (option) => ButtonSegment<AdhanAlertMode>(
-                        value: option.mode,
-                        label: Text(option.title),
-                      ),
-                    )
-                    .toList(),
-                selected: <AdhanAlertMode>{_selectedMode},
-                onSelectionChanged: _updating
-                    ? null
-                    : (selection) {
-                        if (selection.isNotEmpty) {
-                          _selectAdhanMode(selection.first);
-                        }
-                      },
-              ),
-              const SizedBox(height: 10),
-              Text(
-                selectedOption.subtitle,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 14),
-              ..._prayerToggles.entries.map(
-                (entry) => SwitchListTile(
-                  value: entry.value,
-                  onChanged: _updating
-                      ? null
-                      : (value) => _togglePrayer(entry.key, value),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(entry.key),
-                ),
-              ),
-              const SizedBox(height: 10),
-              FilledButton.icon(
-                onPressed: _updating ? null : _testAdhan,
-                icon: const Icon(Icons.volume_up_rounded),
-                label: const Text('Test adhan'),
-              ),
-            ],
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              child: !_alertsEnabled
+                  ? const SizedBox.shrink()
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        SegmentedButton<AdhanAlertMode>(
+                          showSelectedIcon: false,
+                          segments: PrayerService.adhanAlertOptions
+                              .map(
+                                (option) => ButtonSegment<AdhanAlertMode>(
+                                  value: option.mode,
+                                  label: Text(option.title),
+                                ),
+                              )
+                              .toList(),
+                          selected: <AdhanAlertMode>{_selectedMode},
+                          onSelectionChanged: _updating
+                              ? null
+                              : (selection) {
+                                  if (selection.isNotEmpty) {
+                                    _selectAdhanMode(selection.first);
+                                  }
+                                },
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          selectedOption.subtitle,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: orderedToggles.map((entry) {
+                            return FilterChip(
+                              label: Text(entry.key),
+                              selected: entry.value,
+                              onSelected: _updating
+                                  ? null
+                                  : (value) => _togglePrayer(entry.key, value),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: _updating ? null : _testAdhan,
+                          icon: const Icon(Icons.volume_up_rounded),
+                          label: const Text('Test adhan'),
+                        ),
+                      ],
+                    ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  List<MapEntry<String, bool>> _orderedPrayerToggles() {
+    const prayerOrder = <String>['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+    final entries = _prayerToggles.entries.toList();
+    entries.sort((left, right) {
+      final leftIndex = prayerOrder.indexOf(left.key);
+      final rightIndex = prayerOrder.indexOf(right.key);
+      return leftIndex.compareTo(rightIndex);
+    });
+    return entries;
   }
 
   IconData _iconForPrayer(String prayerName) {
@@ -603,14 +850,14 @@ class _HeroBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+        color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withOpacity(0.12)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.white.withOpacity(0.86),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.86),
               fontWeight: FontWeight.w600,
             ),
       ),
@@ -632,7 +879,7 @@ class _PrayerMetric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -641,7 +888,7 @@ class _PrayerMetric extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withOpacity(0.72),
+                  color: Colors.white.withValues(alpha: 0.72),
                 ),
           ),
           const SizedBox(height: 4),
@@ -652,6 +899,56 @@ class _PrayerMetric extends StatelessWidget {
                 ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrayerFocusPanel extends StatelessWidget {
+  const _PrayerFocusPanel({
+    required this.label,
+    required this.title,
+    required this.detail,
+  });
+
+  final String label;
+  final String title;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.72),
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            detail,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.84),
+                ),
           ),
         ],
       ),
