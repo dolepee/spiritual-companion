@@ -50,18 +50,6 @@
       "uncertain": false
     },
     {
-      "duaId": "Dua 79",
-      "title": "Sayyid al-Istighfar (Master of Seeking Forgiveness)",
-      "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُبِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
-      "transcription": "Allaahumma 'Anta Rabbee laa 'ilaaha 'illaa 'Anta, khalaqtanee wa 'anaa 'abduka, wa 'anaa 'alaa 'ahdika wa wa'dika mas-tata'tu, 'a'oothu bika min sharri maa sana'tu, 'aboo'u laka bini'matika 'alayya, wa 'aboo'u bithanbee faghfir lee fa'innahu laa yaghfiruth-thunooba 'illaa 'Anta.",
-      "english": "O Allah, You are my Lord, there is none worthy of worship but You. You created me and I am your slave. I keep Your covenant, and my pledge to You so far as I am able. I seek refuge in You from the evil of what I have done. I admit to Your blessings upon me, and I admit to my misdeeds. Forgive me, for there is none who may forgive sins but You.",
-      "reference": "Whoever recites this with conviction in the evening and dies during that night shall enter Paradise, and whoever recites it with conviction in the morning and dies during that day shall enter Paradise. Al-Bukhari 7/150. Other reports are in An-Nasa'i and At-Tirmithi.",
-      "category": "morning",
-      "repeatCount": "1x",
-      "sourceIndex": 7,
-      "uncertain": false
-    },
-    {
       "duaId": "Dua 80",
       "title": "Morning Testimony",
       "arabic": "اللَّهُمَّ إِنِّي أَصْبَحْتُ أُشْهِدُكَ، وَأُشْهِدُ حَمَلَةَ عَرْشِكَ، وَمَلَائِكَتِكَ وَجَمِيعَ خَلْقِكَ أَنَّكَ أَنْتَ اللَّهُ لَا إِلَهَ إِلَّا أَنْتَ وَحْدَكَ لَا شَرِيكَ لَكَ وَأَنَّ مُحَمَّدًا عَبْدُكَ وَرَسُولُكَ",
@@ -83,6 +71,18 @@
       "category": "morning",
       "repeatCount": "1x",
       "sourceIndex": 6,
+      "uncertain": false
+    },
+    {
+      "duaId": "Dua 79",
+      "title": "Sayyid al-Istighfar (Master of Seeking Forgiveness)",
+      "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُبِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ",
+      "transcription": "Allaahumma 'Anta Rabbee laa 'ilaaha 'illaa 'Anta, khalaqtanee wa 'anaa 'abduka, wa 'anaa 'alaa 'ahdika wa wa'dika mas-tata'tu, 'a'oothu bika min sharri maa sana'tu, 'aboo'u laka bini'matika 'alayya, wa 'aboo'u bithanbee faghfir lee fa'innahu laa yaghfiruth-thunooba 'illaa 'Anta.",
+      "english": "O Allah, You are my Lord, there is none worthy of worship but You. You created me and I am your slave. I keep Your covenant, and my pledge to You so far as I am able. I seek refuge in You from the evil of what I have done. I admit to Your blessings upon me, and I admit to my misdeeds. Forgive me, for there is none who may forgive sins but You.",
+      "reference": "Whoever recites this with conviction in the evening and dies during that night shall enter Paradise, and whoever recites it with conviction in the morning and dies during that day shall enter Paradise. Al-Bukhari 7/150. Other reports are in An-Nasa'i and At-Tirmithi.",
+      "category": "morning",
+      "repeatCount": "1x",
+      "sourceIndex": 7,
       "uncertain": false
     },
     {
@@ -207,29 +207,15 @@
     },
     {
       "duaId": "Dua 92",
-      "title": "Tahleel (10x)",
+      "title": "Tahleel",
       "arabic": "لَا إِلٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
       "transcription": "Laa 'ilaaha 'illallaahu wahdahu laa shareeka lahu, lahul-mulku wa lahul-hamdu, wa Huwa 'alaa kulli shay'in Qadeer.",
       "english": "None has the right to be worshipped but Allah alone, Who has no partner. His is the dominion and His is the praise and He is Able to do all things.",
-      "reference": "Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.",
+      "reference": "1. Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.\n2. Abu Hurayrah narrated that the Prophet ﷺ said that whoever says it one hundred times in the morning will have one hundred Hasanaat written for him, one hundred misdeeds erased, the reward of freeing a slave, and protection from Satan until evening. Ahmad 8/704, 16/293. Its chain of transmission is good (Hasan), Ibn Baz, p. 44.",
       "category": "morning",
-      "repeatCount": "10x",
+      "repeatCount": "10x or 100x",
       "sourceIndex": 18,
-      "uncertain": false,
-      "notes": "The raw source combines the 10x and 100x morning tahleel variants; this dataset preserves a separate 10x entry."
-    },
-    {
-      "duaId": "Dua 93",
-      "title": "Tahleel (100x in the morning)",
-      "arabic": "لَا إِلٰهَ إِلَّا اللّٰهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
-      "transcription": "Laa 'ilaaha 'illallaahu wahdahu laa shareeka lahu, lahul-mulku wa lahul-hamdu, wa Huwa 'alaa kulli shay'in Qadeer.",
-      "english": "None has the right to be worshipped but Allah alone, Who has no partner. His is the dominion and His is the praise and He is Able to do all things.",
-      "reference": "1. Allah will write ten Hasanaat (rewards) for whoever recites this ten times in the morning, and forgive him ten misdeeds and give him the reward of freeing ten slaves and protect him from Satan. Whoever recites this ten times in the evening will get this same reward. An-Nasa'i, 'Amalul-Yawm wal-Laylah (no. 24). Its chain of transmission is sound (Sahih). Albani 1/272.\n2. Abu Hurayrah narrated that the Prophet ﷺ said: \"Allah will write one hundred Hasanat for whoever says this ten times in the morning, and forgive him one hundred misdeeds. He will have the reward of freeing a slave and will be protected from Satan throughout the day unto dusk.\" Ahmad 8/704, 16/293. Its chain of transmission is good (Hasan), Ibn Baz, p. 44.\n3. Whoever recites this in the morning will have the reward of freeing a slave from the Children of Isma'il. Ten Hasanaat will be written for him, and he will be forgiven ten misdeeds, raised up ten degrees, and be protected from Satan until evening. Abu Dawud 4/319, 3/957, Ahmad 4/60, Ibn Majah 2/331, Ibn Al-Qayyim Zadul-Ma'ad 2/388. Its chain of transmission is sound (Sahih). Al-Albani 1/270.",
-      "category": "morning",
-      "repeatCount": "100x",
-      "sourceIndex": 18,
-      "uncertain": false,
-      "notes": "The raw source combines the 10x and 100x morning tahleel variants; this dataset preserves a separate 100x entry."
+      "uncertain": false
     },
     {
       "duaId": "Dua 94",

@@ -82,6 +82,7 @@ class _AdhkarScreenState extends State<AdhkarScreen>
   static const String _completedKey = 'adhkar_completed_entries';
 
   late TabController _tabController;
+  final Map<String, GlobalKey> _entryKeys = <String, GlobalKey>{};
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -250,6 +251,8 @@ class _AdhkarScreenState extends State<AdhkarScreen>
     final completedCount = items
         .where((item) => _completedEntries.contains(_entryKey(sectionKey, item)))
         .length;
+    final progress = items.isEmpty ? 0.0 : completedCount / items.length;
+    final nextUnread = _nextUnreadItem(sectionKey, items);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -310,12 +313,62 @@ class _AdhkarScreenState extends State<AdhkarScreen>
                       ),
                     ],
                   ),
+                  const SizedBox(height: 14),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 7,
+                      backgroundColor: Colors.white.withValues(alpha: 0.16),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.gold,
+                      ),
+                    ),
+                  ),
+                  if (nextUnread != null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.play_circle_outline_rounded,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Next unread: ${nextUnread.title.isEmpty ? 'Adhkar' : nextUnread.title}',
+                              style:
+                                  Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () => _jumpToEntry(sectionKey, nextUnread),
+                            child: const Text('Continue'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
           const SizedBox(height: 12),
-          _buildOptionsCard(),
+          _buildOptionsStrip(),
           const SizedBox(height: 12),
           if (items.isEmpty)
             const Card(
@@ -324,100 +377,63 @@ class _AdhkarScreenState extends State<AdhkarScreen>
                 child: Text('No entries available in this section yet.'),
               ),
             ),
-          ...items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return _buildAdhkarCard(sectionKey, index + 1, item);
-          }),
+          ...items.map((item) => _buildAdhkarCard(sectionKey, item)),
         ],
       ),
     );
   }
 
-  Widget _buildOptionsCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Option Boxes',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _buildOptionBox(
-                  label: 'Arabic',
-                  value: _showArabic,
-                  onChanged: (value) => setState(() => _showArabic = value),
-                ),
-                _buildOptionBox(
-                  label: 'Transcription',
-                  value: _showTranscription,
-                  onChanged: (value) =>
-                      setState(() => _showTranscription = value),
-                ),
-                _buildOptionBox(
-                  label: 'English',
-                  value: _showEnglish,
-                  onChanged: (value) => setState(() => _showEnglish = value),
-                ),
-                _buildOptionBox(
-                  label: 'Reference',
-                  value: _showReference,
-                  onChanged: (value) => setState(() => _showReference = value),
-                ),
-              ],
-            ),
-          ],
-        ),
+  Widget _buildOptionsStrip() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.84),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE9E0D2)),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          _buildOptionChip(
+            label: 'Arabic',
+            value: _showArabic,
+            onChanged: (value) => setState(() => _showArabic = value),
+          ),
+          _buildOptionChip(
+            label: 'Transcription',
+            value: _showTranscription,
+            onChanged: (value) => setState(() => _showTranscription = value),
+          ),
+          _buildOptionChip(
+            label: 'English',
+            value: _showEnglish,
+            onChanged: (value) => setState(() => _showEnglish = value),
+          ),
+          _buildOptionChip(
+            label: 'Reference',
+            value: _showReference,
+            onChanged: (value) => setState(() => _showReference = value),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildOptionBox({
+  Widget _buildOptionChip({
     required String label,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return InkWell(
-      onTap: () => onChanged(!value),
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: value
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline,
-          ),
-          color: value
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Colors.transparent,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Checkbox(
-              value: value,
-              visualDensity: VisualDensity.compact,
-              onChanged: (checked) => onChanged(checked ?? false),
-            ),
-            Text(label),
-          ],
-        ),
-      ),
+    return FilterChip(
+      label: Text(label),
+      selected: value,
+      onSelected: onChanged,
+      showCheckmark: false,
     );
   }
 
-  Widget _buildAdhkarCard(String sectionKey, int number, AdhkarItem item) {
+  Widget _buildAdhkarCard(String sectionKey, AdhkarItem item) {
     final completed = _completedEntries.contains(_entryKey(sectionKey, item));
     final visibleFieldCount = [
       _showArabic && item.arabic.isNotEmpty,
@@ -427,6 +443,7 @@ class _AdhkarScreenState extends State<AdhkarScreen>
     ].where((isVisible) => isVisible).length;
 
     return Card(
+      key: _entryCardKey(sectionKey, item),
       margin: const EdgeInsets.only(bottom: 12),
       color: completed ? const Color(0xFFF3F8F5) : null,
       child: Padding(
@@ -434,67 +451,56 @@ class _AdhkarScreenState extends State<AdhkarScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              height: 4,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: completed
+                    ? AppColors.emerald
+                    : item.repeatCount.isNotEmpty
+                        ? AppColors.gold.withValues(alpha: 0.82)
+                        : const Color(0xFFE8DDD0),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Text(
-                    '$number',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title.isEmpty
-                            ? item.duaId
-                            : '${item.duaId} — ${item.title}',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                Text(
+                  item.title.isEmpty ? 'Adhkar' : item.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      if (item.repeatCount.isNotEmpty || item.uncertain) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (item.repeatCount.isNotEmpty)
-                              Chip(
-                                label: Text('Repeat: ${item.repeatCount}'),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            if (completed)
-                              const Chip(
-                                avatar: Icon(Icons.check_circle_rounded, size: 18),
-                                label: Text('Completed'),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            if (item.uncertain)
-                              const Chip(
-                                avatar: Icon(Icons.warning_amber_rounded, size: 18),
-                                label: Text('Needs review'),
-                                visualDensity: VisualDensity.compact,
-                              ),
-                          ],
+                ),
+                if (item.repeatCount.isNotEmpty || item.uncertain || completed) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (item.repeatCount.isNotEmpty)
+                        Chip(
+                          label: Text('Repeat: ${item.repeatCount}'),
+                          visualDensity: VisualDensity.compact,
                         ),
-                      ],
+                      if (completed)
+                        const Chip(
+                          avatar: Icon(Icons.check_circle_rounded, size: 18),
+                          label: Text('Completed'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (item.uncertain)
+                        const Chip(
+                          avatar: Icon(Icons.warning_amber_rounded, size: 18),
+                          label: Text('Needs review'),
+                          visualDensity: VisualDensity.compact,
+                        ),
                     ],
                   ),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -549,7 +555,7 @@ class _AdhkarScreenState extends State<AdhkarScreen>
                     icon: Icon(
                       completed ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
                     ),
-                    label: Text(completed ? 'Completed' : 'Mark read'),
+                    label: Text(completed ? 'Completed' : 'Mark complete'),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -579,6 +585,31 @@ class _AdhkarScreenState extends State<AdhkarScreen>
       }
     });
     await _saveCompletionState();
+  }
+
+  AdhkarItem? _nextUnreadItem(String sectionKey, List<AdhkarItem> items) {
+    for (final item in items) {
+      if (!_completedEntries.contains(_entryKey(sectionKey, item))) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  GlobalKey _entryCardKey(String sectionKey, AdhkarItem item) {
+    final key = _entryKey(sectionKey, item);
+    return _entryKeys.putIfAbsent(key, GlobalKey.new);
+  }
+
+  Future<void> _jumpToEntry(String sectionKey, AdhkarItem item) async {
+    final targetContext = _entryCardKey(sectionKey, item).currentContext;
+    if (targetContext == null) return;
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      alignment: 0.08,
+    );
   }
 
   String _entryKey(String sectionKey, AdhkarItem item) {
@@ -632,8 +663,7 @@ class _AdhkarScreenState extends State<AdhkarScreen>
 
   String _formatAdhkarForCopy(AdhkarItem item) {
     final buffer = StringBuffer();
-    buffer.writeln(
-        item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}');
+    buffer.writeln(item.title.isEmpty ? 'Adhkar' : item.title);
     buffer.writeln();
     if (item.arabic.isNotEmpty) {
       buffer.writeln('Arabic:');

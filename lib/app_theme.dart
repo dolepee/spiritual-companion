@@ -48,6 +48,7 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.cream,
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      splashFactory: InkRipple.splashFactory,
     );
 
     return base.copyWith(
@@ -97,7 +98,7 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.white.withOpacity(0.92),
+        color: AppColors.white.withValues(alpha: 0.92),
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
@@ -172,6 +173,10 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.emerald,
+        linearTrackColor: Color(0xFFE6DCCA),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.white,
@@ -190,8 +195,73 @@ class AppTheme {
         ),
         labelStyle: const TextStyle(color: AppColors.slate),
       ),
+      tabBarTheme: base.tabBarTheme.copyWith(
+        indicator: BoxDecoration(
+          color: const Color(0xFFE5EEE8),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        labelColor: AppColors.emerald,
+        unselectedLabelColor: AppColors.slate,
+        labelStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const Color(0xFFE5EEE8);
+            }
+            return AppColors.white;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? AppColors.emerald
+                : AppColors.ink;
+          }),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: Color(0xFFD8D0C2)),
+          ),
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+          textStyle: WidgetStatePropertyAll(
+            base.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.white;
+          }
+          return AppColors.white;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.emerald;
+          }
+          return const Color(0xFFD8D0C2);
+        }),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        side: const BorderSide(color: Color(0xFFD8D0C2)),
+      ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.white.withOpacity(0.96),
+        backgroundColor: AppColors.white.withValues(alpha: 0.96),
         indicatorColor: const Color(0xFFE5EEE8),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(

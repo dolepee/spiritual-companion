@@ -81,11 +81,11 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    const HomeScreen(),
-    const PrayerScreen(),
-    const QuranScreen(),
-    const CalendarScreen(),
-    const SettingsScreen(),
+    HomeScreen(),
+    PrayerScreen(),
+    QuranScreen(),
+    CalendarScreen(),
+    SettingsScreen(),
   ];
 
   final List<NavigationDestination> _destinations = const [
@@ -138,27 +138,48 @@ class _MainScreenState extends State<MainScreen> {
           child: _screens[_currentIndex],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 24,
-              offset: const Offset(0, -8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) =>
-                setState(() => _currentIndex = index),
-            destinations: _destinations,
-          ),
-        ),
+      bottomNavigationBar: ValueListenableBuilder<bool>(
+        valueListenable: QuranService.readerChromeVisibleListenable,
+        builder: (context, chromeVisible, _) {
+          final showNavigation = _currentIndex != 2 || chromeVisible;
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              return SizeTransition(
+                sizeFactor: animation,
+                axisAlignment: -1,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: showNavigation
+                ? Container(
+                    key: const ValueKey<String>('main-nav-visible'),
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 24,
+                          offset: const Offset(0, -8),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: NavigationBar(
+                        selectedIndex: _currentIndex,
+                        onDestinationSelected: (index) =>
+                            setState(() => _currentIndex = index),
+                        destinations: _destinations,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey<String>('main-nav-hidden')),
+          );
+        },
       ),
     );
   }

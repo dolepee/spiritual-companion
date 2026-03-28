@@ -44,6 +44,7 @@ class QuranService {
   static String _selectedFontId = 'amiri';
   static String _selectedReciterId = 'alafasy';
   static final Set<int> _bookmarkedPages = <int>{};
+  static final ValueNotifier<bool> _readerChromeVisible = ValueNotifier<bool>(true);
 
   static const List<QuranFontOption> fontOptions = [
     QuranFontOption(
@@ -107,6 +108,9 @@ class QuranService {
   static List<Surah> get allSurahs => _quranData?.surahs ?? const <Surah>[];
   static Duration get currentAudioPosition => _audioPlayer.position;
   static Duration? get currentAudioDuration => _audioPlayer.duration;
+  static bool get isReaderChromeVisible => _readerChromeVisible.value;
+  static ValueListenable<bool> get readerChromeVisibleListenable =>
+      _readerChromeVisible;
 
   static QuranFontOption get selectedFontOption {
     return fontOptions.firstWhere(
@@ -382,6 +386,11 @@ class QuranService {
 
   static Future<void> seekAudio(Duration position) async {
     await _audioPlayer.seek(position);
+  }
+
+  static void setReaderChromeVisible(bool visible) {
+    if (_readerChromeVisible.value == visible) return;
+    _readerChromeVisible.value = visible;
   }
 
   static void _bindAudioState() {

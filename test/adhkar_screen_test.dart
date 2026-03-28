@@ -97,7 +97,7 @@ void main() {
     expect(find.text('Morning Adhkar'), findsOneWidget);
 
     final dua76Title = find.text(
-      'Dua 76 — Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
+      'Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
     );
     await tester.ensureVisible(dua76Title);
     await tester.pump(const Duration(milliseconds: 200));
@@ -131,9 +131,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('Adhkar copied to clipboard'), findsOneWidget);
-    expect(copiedText, contains('Dua 76'));
+    expect(
+      copiedText,
+      contains('Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas'),
+    );
+    expect(copiedText, isNot(contains('Dua 76')));
     expect(copiedText, contains('Repeat: 3x each'));
     expect(copiedText, isNot(contains('Review note:')));
+
+    expect(find.text('Salawat upon the Prophet ﷺ'), findsOneWidget);
 
     await tester.tap(find.text('Evening'));
     await tester.pump();
@@ -143,7 +149,7 @@ void main() {
     expect(find.text('Morning Adhkar'), findsNothing);
 
     final eveningTitle = find.text(
-      'Dua 76 — Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
+      'Recite Surah Al-Ikhlas, Surah Al-Falaq and Surah An-Nas',
     );
     await tester.ensureVisible(eveningTitle);
     await tester.pump(const Duration(milliseconds: 200));
@@ -168,5 +174,6 @@ void main() {
       ),
       findsNothing,
     );
+    expect(find.text('Salawat upon the Prophet ﷺ'), findsOneWidget);
   });
 }

@@ -8,10 +8,18 @@ class QuranLibrarySheet extends StatefulWidget {
     super.key,
     required this.currentPage,
     required this.onSelectPage,
+    required this.selectedFontId,
+    required this.selectedReciterId,
+    required this.onChangeFont,
+    required this.onChangeReciter,
   });
 
   final int currentPage;
   final ValueChanged<int> onSelectPage;
+  final String selectedFontId;
+  final String selectedReciterId;
+  final ValueChanged<String?> onChangeFont;
+  final ValueChanged<String?> onChangeReciter;
 
   @override
   State<QuranLibrarySheet> createState() => _QuranLibrarySheetState();
@@ -50,93 +58,213 @@ class _QuranLibrarySheetState extends State<QuranLibrarySheet> {
 
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+      child: FractionallySizedBox(
+        heightFactor: 0.92,
         child: DefaultTabController(
-          length: 3,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0D5C2),
-                  borderRadius: BorderRadius.circular(999),
+          length: 4,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 44,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0D5C2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Browse the Quran',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Jump by page, surah, juz, or return to saved pages.',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  FilledButton.tonalIcon(
-                    onPressed: () => _selectPage(QuranService.currentPage),
-                    icon: const Icon(Icons.history_rounded),
-                    label: const Text('Resume'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _pageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Go to page',
-                        hintText: '1 - 604',
-                      ),
-                      onSubmitted: (_) => _jumpToPage(),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  FilledButton(
-                    onPressed: _jumpToPage,
-                    child: const Text('Open'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              const TabBar(
-                tabs: [
-                  Tab(text: 'Surahs'),
-                  Tab(text: 'Juz'),
-                  Tab(text: 'Saved'),
-                ],
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 420,
-                child: TabBarView(
+                const SizedBox(height: 18),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSurahList(context),
-                    _buildJuzList(context),
-                    _buildSavedList(context, bookmarks),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Manage your reading',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Jump quickly, revisit bookmarks, or adjust the reader without leaving the mushaf.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.tonalIcon(
+                      onPressed: () => _selectPage(widget.currentPage),
+                      icon: const Icon(Icons.history_rounded),
+                      label: const Text('Last read'),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 18),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _LibraryPill(label: 'Page ${widget.currentPage}'),
+                    _LibraryPill(
+                      label: 'Juz ${QuranService.getJuzForPage(widget.currentPage) ?? '-'}',
+                    ),
+                    _LibraryPill(label: '${bookmarks.length} bookmarks'),
+                    _LibraryPill(label: QuranService.selectedReciterOption.name),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _pageController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Jump to page',
+                          hintText: '1 - 604',
+                        ),
+                        onSubmitted: (_) => _jumpToPage(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    FilledButton.icon(
+                      onPressed: _jumpToPage,
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                      label: const Text('Open'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const TabBar(
+                  tabs: [
+                    Tab(text: 'Surahs'),
+                    Tab(text: 'Juz'),
+                    Tab(text: 'Saved'),
+                    Tab(text: 'Reader'),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildSurahList(context),
+                      _buildJuzList(context),
+                      _buildSavedList(context, bookmarks),
+                      _buildReaderPane(context),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReaderPane(BuildContext context) {
+    return ListView(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.cream,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Reader settings',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Keep the page full and adjust only what affects reading comfort.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 18),
+              DropdownButtonFormField<String>(
+                initialValue: widget.selectedFontId,
+                decoration: const InputDecoration(labelText: 'Arabic font'),
+                items: QuranService.fontOptions
+                    .map(
+                      (option) => DropdownMenuItem<String>(
+                        value: option.id,
+                        child: Text(option.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: widget.onChangeFont,
+              ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String>(
+                initialValue: widget.selectedReciterId,
+                decoration: const InputDecoration(labelText: 'Reciter'),
+                items: QuranService.reciterOptions
+                    .map(
+                      (option) => DropdownMenuItem<String>(
+                        value: option.id,
+                        child: Text(option.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: widget.onChangeReciter,
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: AppColors.cream,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Quick return points',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonalIcon(
+                onPressed: () => _selectPage(widget.currentPage),
+                icon: const Icon(Icons.history_rounded),
+                label: Text('Resume page ${widget.currentPage}'),
+              ),
+              if (QuranService.bookmarkedPages.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: (QuranService.bookmarkedPages.toList()..sort())
+                      .take(6)
+                      .map(
+                        (page) => ActionChip(
+                          label: Text('Page $page'),
+                          onPressed: () => _selectPage(page),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
