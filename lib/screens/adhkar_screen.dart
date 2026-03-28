@@ -621,34 +621,64 @@ class _AdhkarScreenState extends State<AdhkarScreen>
     required String value,
     bool isArabic = false,
   }) {
+    final surfaceColor = switch (label) {
+      'Arabic' => const Color(0xFFF8F2E8),
+      'Transcription' => const Color(0xFFFFFCF6),
+      'English' => AppColors.white,
+      _ => const Color(0xFFF7F2EA),
+    };
+    final borderColor = switch (label) {
+      'Arabic' => const Color(0xFFE7D9C5),
+      'Transcription' => const Color(0xFFE8DFD2),
+      'English' => const Color(0xFFE9E0D4),
+      _ => const Color(0xFFE5DDCF),
+    };
+    final textStyle = isArabic
+        ? Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontFamily: 'Amiri',
+              fontSize: 24,
+              height: 1.9,
+              color: AppColors.ink,
+            )
+        : label == 'Reference'
+            ? Theme.of(context).textTheme.bodySmall?.copyWith(
+                  height: 1.7,
+                  color: AppColors.slate,
+                )
+            : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  height: 1.75,
+                  color: AppColors.ink,
+                );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.slate,
-                ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-            textAlign: isArabic ? TextAlign.right : TextAlign.left,
-            style: isArabic
-                ? Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontFamily: 'Amiri',
-                      fontSize: 20,
-                      height: 1.7,
-                    )
-                : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                    ),
-          ),
-        ],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.slate,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+              textAlign: isArabic ? TextAlign.right : TextAlign.left,
+              style: textStyle,
+            ),
+          ],
+        ),
       ),
     );
   }

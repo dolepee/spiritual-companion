@@ -79,14 +79,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    PrayerScreen(),
-    QuranScreen(),
-    CalendarScreen(),
-    SettingsScreen(),
-  ];
+  int _lastNonReaderIndex = 0;
 
   final List<NavigationDestination> _destinations = const [
     NavigationDestination(
@@ -116,6 +109,43 @@ class _MainScreenState extends State<MainScreen> {
     ),
   ];
 
+  Widget _buildScreen(int index) {
+    switch (index) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return const PrayerScreen();
+      case 2:
+        return QuranScreen(onExitReader: _exitReader);
+      case 3:
+        return const CalendarScreen();
+      case 4:
+        return const SettingsScreen();
+      default:
+        return const HomeScreen();
+    }
+  }
+
+  void _selectDestination(int index) {
+    if (index == _currentIndex) return;
+
+    setState(() {
+      if (index == 2) {
+        _lastNonReaderIndex = _currentIndex == 2 ? 0 : _currentIndex;
+      } else {
+        _lastNonReaderIndex = index;
+      }
+      _currentIndex = index;
+    });
+  }
+
+  void _exitReader() {
+    setState(() {
+      _currentIndex = _lastNonReaderIndex == 2 ? 0 : _lastNonReaderIndex;
+    });
+    QuranService.setReaderChromeVisible(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,13 +165,13 @@ class _MainScreenState extends State<MainScreen> {
         },
         child: KeyedSubtree(
           key: ValueKey<int>(_currentIndex),
-          child: _screens[_currentIndex],
+          child: _buildScreen(_currentIndex),
         ),
       ),
       bottomNavigationBar: ValueListenableBuilder<bool>(
         valueListenable: QuranService.readerChromeVisibleListenable,
         builder: (context, chromeVisible, _) {
-          final showNavigation = _currentIndex != 2 || chromeVisible;
+          final showNavigation = _currentIndex != 2 && chromeVisible;
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 260),
             switchInCurve: Curves.easeOutCubic,
@@ -171,8 +201,7 @@ class _MainScreenState extends State<MainScreen> {
                       borderRadius: BorderRadius.circular(28),
                       child: NavigationBar(
                         selectedIndex: _currentIndex,
-                        onDestinationSelected: (index) =>
-                            setState(() => _currentIndex = index),
+                        onDestinationSelected: _selectDestination,
                         destinations: _destinations,
                       ),
                     ),

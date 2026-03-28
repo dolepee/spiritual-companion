@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,9 +25,11 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
   int _currentStreak = 0;
   String _selectedDhikr = 'سُبْحَانَ اللَّهِ';
   String _lastCompletionDate = '';
+  bool _justCompletedRound = false;
 
   late final AnimationController _animationController;
   late final Animation<double> _scaleAnimation;
+  Timer? _completionTimer;
 
   final List<String> _commonDhikr = <String>[
     'سُبْحَانَ اللَّهِ',
@@ -54,6 +58,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
 
   @override
   void dispose() {
+    _completionTimer?.cancel();
     _animationController.dispose();
     super.dispose();
   }
@@ -121,6 +126,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
     final todayKey = _dateKey(now);
     final yesterdayKey = _dateKey(now.subtract(const Duration(days: 1)));
 
+    _completionTimer?.cancel();
     setState(() {
       _completedRounds += 1;
       if (_lastCompletionDate == todayKey) {
@@ -131,15 +137,22 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
         _lastCompletionDate = todayKey;
       }
       _count = 0;
+      _justCompletedRound = true;
     });
 
     VibrationService.vibrateHeavy();
     await _saveSettings();
+    _completionTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      setState(() => _justCompletedRound = false);
+    });
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Round complete. $_dailyCompletedRounds of $_dailyGoalRounds daily rounds finished.',
+          _dailyCompletedRounds >= _dailyGoalRounds
+              ? 'Round complete. Daily goal reached.'
+              : 'Round complete. $_dailyCompletedRounds of $_dailyGoalRounds daily rounds finished.',
         ),
       ),
     );
@@ -216,6 +229,8 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
   }
 
   Widget _buildHeroCard(BuildContext context, double goalProgress) {
+    final goalReached = _dailyCompletedRounds >= _dailyGoalRounds;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -297,6 +312,13 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                   color: Colors.white.withValues(alpha: 0.82),
                 ),
           ),
+          if (goalReached) ...[
+            const SizedBox(height: 12),
+            const _GoalPill(
+              icon: Icons.workspace_premium_rounded,
+              label: 'Daily tasbih goal complete',
+            ),
+          ],
         ],
       ),
     );
@@ -304,6 +326,21 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
 
   Widget _buildCounter(BuildContext context, double progress) {
     final remaining = (_targetCount - _count).clamp(0, _targetCount);
+    final counterGradient = _justCompletedRound
+        ? const [
+            AppColors.gold,
+            Color(0xFFD7B06C),
+          ]
+        : const [
+            AppColors.emerald,
+            AppColors.emeraldSoft,
+          ];
+    final statusLabel = _justCompletedRound ? 'Round complete' : 'Tap to count';
+    final statusDetail = _justCompletedRound
+        ? (_dailyCompletedRounds >= _dailyGoalRounds
+            ? 'Daily goal reached'
+            : 'Steady progress for today')
+        : '$remaining remaining';
 
     return Container(
       decoration: BoxDecoration(
@@ -365,17 +402,17 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                         height: 220,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.emerald,
-                              AppColors.emeraldSoft,
-                            ],
+                            colors: counterGradient,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.emerald.withValues(alpha: 0.26),
+                              color: (_justCompletedRound
+                                      ? AppColors.gold
+                                      : AppColors.emerald)
+                                  .withValues(alpha: 0.26),
                               blurRadius: 30,
                               offset: const Offset(0, 18),
                             ),
@@ -384,25 +421,49 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              '$_count',
-                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                    color: Colors.white,
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              transitionBuilder: (child, animation) {
+                                return ScaleTransition(
+                                  scale: Tween<double>(
+                                    begin: 0.9,
+                                    end: 1,
+                                  ).animate(animation),
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
                                   ),
+                                );
+                              },
+                              child: Text(
+                                '$_count',
+                                key: ValueKey<int>(_count),
+                                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                      color: Colors.white,
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Tap to count',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.88),
-                                  ),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: Text(
+                                statusLabel,
+                                key: ValueKey<String>(statusLabel),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: Colors.white.withValues(alpha: 0.92),
+                                    ),
+                              ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              '$remaining remaining',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.78),
-                                  ),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              child: Text(
+                                statusDetail,
+                                key: ValueKey<String>(statusDetail),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white.withValues(alpha: 0.78),
+                                    ),
+                              ),
                             ),
                           ],
                         ),
@@ -413,9 +474,17 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
               ),
             ),
             const SizedBox(height: 14),
-            Text(
-              '${(progress * 100).toInt()}% of this round complete',
-              style: Theme.of(context).textTheme.bodySmall,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: Text(
+                _justCompletedRound
+                    ? 'A round has just been completed'
+                    : '${(progress * 100).toInt()}% of this round complete',
+                key: ValueKey<String>(
+                  _justCompletedRound ? 'round-complete' : 'round-progress',
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -602,6 +671,42 @@ class _HeroStat extends StatelessWidget {
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GoalPill extends StatelessWidget {
+  const _GoalPill({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: Colors.white),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
                 ),
           ),
         ],

@@ -289,6 +289,19 @@ class _PrayerScreenState extends State<PrayerScreen> {
                   ),
             ),
           ),
+          if (nextPrayer != null) ...[
+            const SizedBox(height: 14),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: _CountdownPill(
+                key: ValueKey<String>('prayer-countdown-$countdown'),
+                icon: Icons.timelapse_rounded,
+                label: 'Begins in $countdown',
+              ),
+            ),
+          ],
           const SizedBox(height: 18),
           Row(
             children: [
@@ -899,6 +912,43 @@ class _PrayerMetric extends StatelessWidget {
                 ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountdownPill extends StatelessWidget {
+  const _CountdownPill({
+    super.key,
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),

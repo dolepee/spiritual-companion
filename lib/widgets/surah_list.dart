@@ -146,7 +146,7 @@ class _QuranLibrarySheetState extends State<QuranLibrarySheet> {
                   tabs: [
                     Tab(text: 'Surahs'),
                     Tab(text: 'Juz'),
-                    Tab(text: 'Saved'),
+                    Tab(text: 'Bookmarks'),
                     Tab(text: 'Reader'),
                   ],
                 ),
