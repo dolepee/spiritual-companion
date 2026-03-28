@@ -73,11 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 18),
                     _buildHeroCard(context, hijri, dailyAyah),
                     const SizedBox(height: 16),
-                    _buildDailyFlow(context, bookmarkedPages),
-                    const SizedBox(height: 16),
-                    _buildActionDeck(context),
-                    const SizedBox(height: 16),
-                    _buildCompanionTools(context),
+                    _buildDailyFlow(context, bookmarkedPages, dailyAyah),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -312,11 +308,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDailyFlow(BuildContext context, int bookmarkedPages) {
+  Widget _buildDailyFlow(
+    BuildContext context,
+    int bookmarkedPages,
+    Ayah? dailyAyah,
+  ) {
     final currentPage = QuranService.currentPage;
     final surahName = QuranService.getSurahNamesForPage(currentPage);
     final juz = QuranService.getJuzForPage(currentPage);
+    final verseSurah = dailyAyah == null
+        ? null
+        : QuranService.getSurahByNumber(dailyAyah.surahNumber);
     final prayers = PrayerService.currentPrayerTimes?.getAllPrayerTimes() ?? const <PrayerTimeInfo>[];
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: 0.90),
@@ -330,176 +334,194 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionHeading(
-              title: 'Today\'s Flow',
-              subtitle: 'Prayer rhythm, Quran continuity, and your next gentle action in one composed view.',
-              actionLabel: 'Reader',
-              onTap: () => _openScreen(context, const QuranScreen()),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.cream,
-                borderRadius: BorderRadius.circular(26),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionHeading(
+                title: 'Today\'s Flow',
+                subtitle: 'Prayer rhythm, Quran continuity, and your next actions stay connected in one calmer composition.',
+                actionLabel: 'Open reader',
+                onTap: () => _openScreen(context, const QuranScreen()),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Reading resume',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.slate,
+              const SizedBox(height: 18),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 640;
+                  final resumePanel = _FlowPanel(
+                    tone: const Color(0xFFF6F0E5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reading resume',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.slate,
+                              ),
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Page $currentPage',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$surahName${juz == null ? '' : ' • Juz $juz'}',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 14),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                        const SizedBox(height: 8),
+                        Text(
+                          'Page $currentPage',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$surahName${juz == null ? '' : ' • Juz $juz'}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _InlineMetricPill(label: '$bookmarkedPages bookmarks'),
+                            _InlineMetricPill(
+                              label: _nextPrayer == null
+                                  ? 'Prayer loading'
+                                  : 'Next: ${_nextPrayer!.name}',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        FilledButton.icon(
+                          onPressed: () => _openScreen(context, const QuranScreen()),
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: Text('Resume from page $currentPage'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  final reflectionPanel = _FlowPanel(
+                    tone: const Color(0xFFFCF7ED),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Verse in your day',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.slate,
+                              ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (dailyAyah != null) ...[
+                          Text(
+                            dailyAyah.text.replaceFirst('\ufeff', ''),
+                            maxLines: isWide ? 4 : 5,
+                            overflow: TextOverflow.ellipsis,
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.right,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontFamily: QuranService.selectedFontOption.fontFamily,
+                                  height: 1.75,
+                                ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            verseSurah == null
+                                ? 'Daily reminder'
+                                : '${verseSurah.englishName} • Ayah ${dailyAyah.numberInSurah}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ] else
+                          Text(
+                            'A daily Quran reminder appears here to keep reading woven into the rhythm of the day.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                      ],
+                    ),
+                  );
+
+                  if (isWide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 6, child: resumePanel),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 5, child: reflectionPanel),
+                      ],
+                    );
+                  }
+
+                  return Column(
                     children: [
-                      _InlineMetricPill(label: '$bookmarkedPages bookmarks'),
-                      _InlineMetricPill(
-                        label: _nextPrayer == null
-                            ? 'Prayer loading'
-                            : 'Next: ${_nextPrayer!.name}',
-                      ),
+                      resumePanel,
+                      const SizedBox(height: 12),
+                      reflectionPanel,
                     ],
+                  );
+                },
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Prayer rhythm',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 10),
+              if (prayers.isEmpty)
+                Text(
+                  'Prayer data is still loading.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                )
+              else
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: prayers
+                      .map(
+                        (prayer) => _PrayerRhythmChip(prayer: prayer),
+                      )
+                      .toList(),
+                ),
+              const SizedBox(height: 20),
+              Text(
+                'Continue with intention',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'The most useful actions stay close without breaking the calm rhythm of the page.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionTile(
+                      icon: Icons.self_improvement_rounded,
+                      accent: AppColors.gold,
+                      title: 'Adhkar',
+                      subtitle: 'Morning and evening remembrance',
+                      onTap: () => _openScreen(context, const AdhkarScreen()),
+                    ),
                   ),
-                  const SizedBox(height: 14),
-                  FilledButton.icon(
-                    onPressed: () => _openScreen(context, const QuranScreen()),
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: Text('Resume from page $currentPage'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _QuickActionTile(
+                      icon: Icons.touch_app_rounded,
+                      accent: AppColors.moss,
+                      title: 'Tasbih',
+                      subtitle: 'Count dhikr with focus',
+                      onTap: () => _openScreen(context, const TasbihScreen()),
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Prayer rhythm',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 10),
-            if (prayers.isEmpty)
-              Text(
-                'Prayer data is still loading.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              )
-            else
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: prayers
-                    .map(
-                      (prayer) => _PrayerRhythmChip(prayer: prayer),
-                    )
-                    .toList(),
+              const SizedBox(height: 12),
+              _ToolRow(
+                title: 'Prayer detail and qibla',
+                subtitle: 'Open the full schedule, compass, and notification settings.',
+                icon: Icons.schedule_rounded,
+                onTap: () => _openScreen(context, const PrayerScreen()),
               ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildActionDeck(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFFEDE2D2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Continue with intention', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              'The most useful actions stay close without breaking the calm rhythm of the page.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionTile(
-                    icon: Icons.self_improvement_rounded,
-                    accent: AppColors.gold,
-                    title: 'Adhkar',
-                    subtitle: 'Morning and evening remembrance',
-                    onTap: () => _openScreen(context, const AdhkarScreen()),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _QuickActionTile(
-                    icon: Icons.touch_app_rounded,
-                    accent: AppColors.moss,
-                    title: 'Tasbih',
-                    subtitle: 'Count dhikr with focus',
-                    onTap: () => _openScreen(context, const TasbihScreen()),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _ToolRow(
-              title: 'Prayer detail and qibla',
-              subtitle: 'Open the full schedule, compass, and notification settings.',
-              icon: Icons.schedule_rounded,
-              onTap: () => _openScreen(context, const PrayerScreen()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompanionTools(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _SectionHeading(
-              title: 'Spiritual Companion',
-              subtitle: 'Keep your practice calm, regular, and easy to return to.',
-            ),
-            const SizedBox(height: 18),
-            _ToolRow(
-              title: 'Morning and Evening Adhkar',
-              subtitle: 'Structured remembrance with cleaner progress and repeat cues.',
-              icon: Icons.wb_sunny_outlined,
-              onTap: () => _openScreen(context, const AdhkarScreen()),
-            ),
-            const SizedBox(height: 12),
-            _ToolRow(
-              title: 'Tasbih Sessions',
-              subtitle: 'Count dhikr with goals, rhythm, and satisfying interaction.',
-              icon: Icons.blur_circular_rounded,
-              onTap: () => _openScreen(context, const TasbihScreen()),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -645,6 +667,28 @@ class _QuickActionTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FlowPanel extends StatelessWidget {
+  const _FlowPanel({
+    required this.child,
+    required this.tone,
+  });
+
+  final Widget child;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: tone,
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: child,
     );
   }
 }

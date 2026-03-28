@@ -44,31 +44,31 @@ class QuranPageViewer extends StatelessWidget {
         curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
           color: const Color(0xFFFFFCF5).withValues(
-            alpha: immersive ? 0.992 : 0.975,
+            alpha: immersive ? 0.998 : 0.975,
           ),
-          borderRadius: BorderRadius.circular(immersive ? 18 : 28),
+          borderRadius: BorderRadius.circular(immersive ? 10 : 26),
           border: Border.all(
             color: const Color(0xFFE6DBCB).withValues(
-              alpha: immersive ? 0.42 : 0.88,
+              alpha: immersive ? 0.18 : 0.88,
             ),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: immersive ? 0.035 : 0.07),
-              blurRadius: immersive ? 18 : 28,
-              offset: Offset(0, immersive ? 8 : 18),
+              color: Colors.black.withValues(alpha: immersive ? 0.018 : 0.07),
+              blurRadius: immersive ? 10 : 28,
+              offset: Offset(0, immersive ? 4 : 18),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(immersive ? 18 : 28),
+          borderRadius: BorderRadius.circular(immersive ? 10 : 26),
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
-              immersive ? 18 : 24,
-              immersive ? 20 : 28,
-              immersive ? 18 : 24,
-              immersive ? 24 : 34,
+              immersive ? 14 : 22,
+              immersive ? 14 : 24,
+              immersive ? 14 : 22,
+              immersive ? 18 : 30,
             ),
             child: Column(
               children: [
@@ -88,21 +88,23 @@ class QuranPageViewer extends StatelessWidget {
                     ),
                   );
                 }),
-                const SizedBox(height: 18),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7EFE0),
-                    borderRadius: BorderRadius.circular(999),
+                if (!immersive) ...[
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7EFE0),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'Page $pageNumber',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.slate,
+                          ),
+                    ),
                   ),
-                  child: Text(
-                    'Page $pageNumber',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.slate,
-                        ),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -162,26 +164,38 @@ class _SurahPageSection extends StatelessWidget {
                         color: AppColors.emerald,
                         fontFamily: arabicFontFamily ?? 'Amiri',
                         fontWeight: FontWeight.w700,
-                        fontSize: 28,
+                        fontSize: immersive ? 30 : 28,
                       ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  surah.englishName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${surah.englishNameTranslation} • ${surah.revelationType} • Ayahs $firstAyah-$lastAyah',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (!immersive) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    surah.englishName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${surah.englishNameTranslation} • ${surah.revelationType} • Ayahs $firstAyah-$lastAyah',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ] else ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ayahs $firstAyah-$lastAyah',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: immersive ? 14 : 20),
           Text.rich(
             TextSpan(
               children: [
@@ -199,13 +213,13 @@ class _SurahPageSection extends StatelessWidget {
             textAlign: TextAlign.right,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontFamily: arabicFontFamily ?? 'Amiri',
-                  fontSize: immersive ? 28 : 26,
-                  height: immersive ? 2.05 : 2.15,
+                  fontSize: immersive ? 30 : 26,
+                  height: immersive ? 1.95 : 2.15,
                   color: AppColors.ink,
                 ),
           ),
           if (lastAyah < surah.numberOfAyahs) ...[
-            const SizedBox(height: 18),
+            SizedBox(height: immersive ? 14 : 18),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(

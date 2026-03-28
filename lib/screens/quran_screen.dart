@@ -12,9 +12,14 @@ import '../widgets/quran_page_viewer.dart';
 import '../widgets/surah_list.dart';
 
 class QuranScreen extends StatefulWidget {
-  const QuranScreen({super.key, this.initialSurah});
+  const QuranScreen({
+    super.key,
+    this.initialSurah,
+    this.onExitReader,
+  });
 
   final Surah? initialSurah;
+  final VoidCallback? onExitReader;
 
   @override
   State<QuranScreen> createState() => _QuranScreenState();
@@ -22,8 +27,8 @@ class QuranScreen extends StatefulWidget {
 
 class _QuranScreenState extends State<QuranScreen> {
   static const Duration _chromeDuration = Duration(milliseconds: 260);
-  static const double _visibleHorizontalInset = 10;
-  static const double _immersiveHorizontalInset = 2;
+  static const double _visibleHorizontalInset = 4;
+  static const double _immersiveHorizontalInset = 0;
 
   late final PageController _pageController;
 
@@ -57,6 +62,10 @@ class _QuranScreenState extends State<QuranScreen> {
     QuranService.setReaderChromeVisible(true);
     _applySystemUi(true);
     _syncFromService();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _scheduleAutoHide();
+    });
     _playerStateSubscription = QuranService.playerStateStream.listen((_) {
       if (!mounted) return;
       setState(_syncFromService);
@@ -274,12 +283,11 @@ class _QuranScreenState extends State<QuranScreen> {
     final hasAudioOverlay = _playingSurah != null || _audioBusy;
     final horizontalInset =
         _isChromeVisible ? _visibleHorizontalInset : _immersiveHorizontalInset;
-    final pageEdgePadding = _isChromeVisible ? 4.0 : 0.0;
-    final topInset = mediaPadding.top + (_isChromeVisible ? 74 : 4);
+    final topInset = mediaPadding.top + (_isChromeVisible ? 56 : 2);
     final bottomInset = mediaPadding.bottom +
         (hasAudioOverlay
-            ? (_isChromeVisible ? 120 : 72)
-            : (_isChromeVisible ? 22 : 10));
+            ? (_isChromeVisible ? 94 : 68)
+            : (_isChromeVisible ? 14 : 6));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2EADB),
@@ -305,7 +313,7 @@ class _QuranScreenState extends State<QuranScreen> {
                   return AnimatedPadding(
                     duration: _chromeDuration,
                     curve: Curves.easeOutCubic,
-                    padding: EdgeInsets.symmetric(horizontal: pageEdgePadding),
+                    padding: EdgeInsets.zero,
                     child: QuranPageViewer(
                       pageNumber: index + 1,
                       arabicFontFamily: QuranService.selectedFontOption.fontFamily,
@@ -318,8 +326,8 @@ class _QuranScreenState extends State<QuranScreen> {
             ),
           ),
           Positioned(
-            left: 10,
-            right: 10,
+            left: 8,
+            right: 8,
             top: mediaPadding.top + 8,
             child: _buildOverlayChrome(
               visible: _isChromeVisible,
@@ -360,8 +368,8 @@ class _QuranScreenState extends State<QuranScreen> {
             ),
           ),
           Positioned(
-            left: 10,
-            right: 10,
+            left: 8,
+            right: 8,
             bottom: mediaPadding.bottom + 10,
             child: _buildBottomOverlay(context),
           ),
@@ -436,16 +444,21 @@ class _QuranScreenState extends State<QuranScreen> {
     required Surah? primarySurah,
   }) {
     final canPop = Navigator.of(context).canPop();
+    final exitReader = canPop
+        ? () => Navigator.of(context).maybePop()
+        : widget.onExitReader;
     final surahLabel = surahs.isEmpty
         ? 'Quran'
         : surahs.map((surah) => surah.englishName).join(' • ');
 
     return _ReaderChromeSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         children: [
           _ReaderIconButton(
+            buttonKey: const ValueKey<String>('quran-reader-back'),
             icon: Icons.arrow_back_rounded,
-            onPressed: canPop ? () => Navigator.of(context).maybePop() : null,
+            onPressed: exitReader,
             tooltip: 'Back',
           ),
           const SizedBox(width: 10),
@@ -455,22 +468,22 @@ class _QuranScreenState extends State<QuranScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  surahLabel,
+                  'Page $_currentPage • Juz $currentJuz',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                        fontSize: 13,
                         color: AppColors.ink,
                       ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Page $_currentPage • Juz $currentJuz',
+                  surahLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 12,
+                        fontSize: 12.5,
                         color: AppColors.slate,
                       ),
                 ),
@@ -549,7 +562,7 @@ class _QuranScreenState extends State<QuranScreen> {
     final pageSurah = QuranService.getSurahNamesForPage(displayedPage);
 
     return _ReaderChromeSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         children: [
           _ReaderIconButton(
@@ -818,16 +831,16 @@ class _ReaderChromeSurface extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.76),
-            borderRadius: BorderRadius.circular(24),
+            color: AppColors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: const Color(0xFFE7DCCA).withValues(alpha: 0.82),
+              color: const Color(0xFFE7DCCA).withValues(alpha: 0.74),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -881,12 +894,14 @@ class _PageContextBadge extends StatelessWidget {
 
 class _ReaderIconButton extends StatelessWidget {
   const _ReaderIconButton({
+    this.buttonKey,
     required this.icon,
     required this.onPressed,
     required this.tooltip,
     this.emphasized = false,
   });
 
+  final Key? buttonKey;
   final IconData icon;
   final VoidCallback? onPressed;
   final String tooltip;
@@ -905,6 +920,7 @@ class _ReaderIconButton extends StatelessWidget {
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
+          key: buttonKey,
           onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
           child: SizedBox(
