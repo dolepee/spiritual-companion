@@ -106,11 +106,9 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
   }
 
   Future<void> _decrementCount() async {
-    if (_count == 0 && _totalCount == 0) return;
+    if (_count == 0) return;
     setState(() {
-      if (_count > 0) {
-        _count -= 1;
-      }
+      _count -= 1;
       if (_totalCount > 0) {
         _totalCount -= 1;
       }
@@ -359,6 +357,7 @@ class _TasbihScreenState extends State<TasbihScreen> with TickerProviderStateMix
                       );
                     },
                     child: GestureDetector(
+                      key: const ValueKey<String>('tasbih-counter-button'),
                       onTap: _incrementCount,
                       onLongPress: _decrementCount,
                       child: Container(
