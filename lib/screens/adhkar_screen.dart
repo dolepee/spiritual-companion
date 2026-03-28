@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../app_theme.dart';
+import '../widgets/decorative_backdrop.dart';
 
 class AdhkarItem {
   const AdhkarItem({
@@ -11,6 +15,11 @@ class AdhkarItem {
     required this.transcription,
     required this.english,
     required this.reference,
+    required this.repeatCount,
+    required this.category,
+    required this.uncertain,
+    required this.sourceIndex,
+    required this.notes,
   });
 
   final String duaId;
@@ -19,6 +28,11 @@ class AdhkarItem {
   final String transcription;
   final String english;
   final String reference;
+  final String repeatCount;
+  final String category;
+  final bool uncertain;
+  final int? sourceIndex;
+  final String notes;
 
   factory AdhkarItem.fromJson(Map<String, dynamic> json) {
     return AdhkarItem(
@@ -28,6 +42,11 @@ class AdhkarItem {
       transcription: _asString(json['transcription']),
       english: _asString(json['english']),
       reference: _asString(json['reference']),
+      repeatCount: _asString(json['repeatCount']),
+      category: _asString(json['category']),
+      uncertain: json['uncertain'] == true,
+      sourceIndex: _asInt(json['sourceIndex']),
+      notes: _asString(json['notes']),
     );
   }
 
@@ -38,16 +57,30 @@ class AdhkarItem {
     }
     return fallback;
   }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value.trim());
+    return null;
+  }
 }
 
 class AdhkarScreen extends StatefulWidget {
-  const AdhkarScreen({super.key});
+  const AdhkarScreen({
+    super.key,
+    this.assetBundle,
+  });
+
+  final AssetBundle? assetBundle;
 
   @override
   State<AdhkarScreen> createState() => _AdhkarScreenState();
 }
 
-class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMixin {
+class _AdhkarScreenState extends State<AdhkarScreen>
+    with TickerProviderStateMixin {
+  static const String _completedKey = 'adhkar_completed_entries';
+
   late TabController _tabController;
 
   bool _isLoading = true;
@@ -61,11 +94,13 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
   bool _showTranscription = true;
   bool _showEnglish = true;
   bool _showReference = true;
+  Set<String> _completedEntries = <String>{};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadCompletionState();
     _loadAdhkarContent();
   }
 
@@ -75,9 +110,25 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
     super.dispose();
   }
 
+  Future<void> _loadCompletionState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _completedEntries = (prefs.getStringList(_completedKey) ?? const <String>[]).toSet();
+    });
+  }
+
+  Future<void> _saveCompletionState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _completedKey,
+      _completedEntries.toList()..sort(),
+    );
+  }
+
   Future<void> _loadAdhkarContent() async {
     try {
-      final raw = await rootBundle.loadString('assets/adhkar_data.json');
+      final raw = await (widget.assetBundle ?? rootBundle)
+          .loadString('assets/adhkar_data.json');
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) {
         throw const FormatException('Invalid adhkar data format');
@@ -87,7 +138,8 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
       final evening = _parseAdhkarList(decoded['evening']);
 
       setState(() {
-        _title = (decoded['title'] is String && (decoded['title'] as String).trim().isNotEmpty)
+        _title = (decoded['title'] is String &&
+                (decoded['title'] as String).trim().isNotEmpty)
             ? (decoded['title'] as String).trim()
             : 'Words of remembrance for morning and evening';
         _morningAdhkar = morning;
@@ -100,7 +152,8 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading Adhkar content. Check assets/adhkar_data.json.';
+        _errorMessage =
+            'Error loading Adhkar content. Check assets/adhkar_data.json.';
       });
     }
   }
@@ -121,10 +174,9 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Adhkar'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -133,7 +185,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
           ],
         ),
       ),
-      body: _buildBody(),
+      body: DecorativeBackdrop(child: _buildBody()),
     );
   }
 
@@ -174,11 +226,13 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
       controller: _tabController,
       children: [
         _buildSection(
+          sectionKey: 'morning',
           sectionTitle: 'Morning Adhkar',
           icon: Icons.wb_sunny_outlined,
           items: _morningAdhkar,
         ),
         _buildSection(
+          sectionKey: 'evening',
           sectionTitle: 'Evening Adhkar',
           icon: Icons.nightlight_round,
           items: _eveningAdhkar,
@@ -188,10 +242,15 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
   }
 
   Widget _buildSection({
+    required String sectionKey,
     required String sectionTitle,
     required IconData icon,
     required List<AdhkarItem> items,
   }) {
+    final completedCount = items
+        .where((item) => _completedEntries.contains(_entryKey(sectionKey, item)))
+        .length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -214,10 +273,13 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
                       Expanded(
                         child: Text(
                           sectionTitle,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                       ),
                     ],
@@ -226,8 +288,27 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
                   Text(
                     _title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SummaryPill(
+                          label: 'Entries',
+                          value: items.length.toString(),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _SummaryPill(
+                          label: 'Completed',
+                          value: '$completedCount / ${items.length}',
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -246,7 +327,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
           ...items.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
-            return _buildAdhkarCard(index + 1, item);
+            return _buildAdhkarCard(sectionKey, index + 1, item);
           }),
         ],
       ),
@@ -279,7 +360,8 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
                 _buildOptionBox(
                   label: 'Transcription',
                   value: _showTranscription,
-                  onChanged: (value) => setState(() => _showTranscription = value),
+                  onChanged: (value) =>
+                      setState(() => _showTranscription = value),
                 ),
                 _buildOptionBox(
                   label: 'English',
@@ -311,9 +393,13 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: value ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+            color: value
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline,
           ),
-          color: value ? Theme.of(context).colorScheme.primaryContainer : Colors.transparent,
+          color: value
+              ? Theme.of(context).colorScheme.primaryContainer
+              : Colors.transparent,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
@@ -331,7 +417,8 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
     );
   }
 
-  Widget _buildAdhkarCard(int number, AdhkarItem item) {
+  Widget _buildAdhkarCard(String sectionKey, int number, AdhkarItem item) {
+    final completed = _completedEntries.contains(_entryKey(sectionKey, item));
     final visibleFieldCount = [
       _showArabic && item.arabic.isNotEmpty,
       _showTranscription && item.transcription.isNotEmpty,
@@ -341,6 +428,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: completed ? const Color(0xFFF3F8F5) : null,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -366,18 +454,71 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title.isEmpty
+                            ? item.duaId
+                            : '${item.duaId} — ${item.title}',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                      if (item.repeatCount.isNotEmpty || item.uncertain) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            if (item.repeatCount.isNotEmpty)
+                              Chip(
+                                label: Text('Repeat: ${item.repeatCount}'),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            if (completed)
+                              const Chip(
+                                avatar: Icon(Icons.check_circle_rounded, size: 18),
+                                label: Text('Completed'),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            if (item.uncertain)
+                              const Chip(
+                                avatar: Icon(Icons.warning_amber_rounded, size: 18),
+                                label: Text('Needs review'),
+                                visualDensity: VisualDensity.compact,
+                              ),
+                          ],
                         ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
+            if (item.uncertain && item.notes.isNotEmpty) ...[
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item.notes,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color:
+                            Theme.of(context).colorScheme.onSecondaryContainer,
+                      ),
+                ),
+              ),
+            ],
             if (visibleFieldCount == 0)
-              const Text('Enable at least one option box to display the content.'),
+              const Text(
+                  'Enable at least one option box to display the content.'),
             if (_showArabic && item.arabic.isNotEmpty)
               _buildFieldSection(
                 label: 'Arabic',
@@ -400,18 +541,48 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
                 value: item.reference,
               ),
             const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () => _copyToClipboard(item),
-                icon: const Icon(Icons.copy),
-                label: const Text('Copy'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _toggleCompleted(sectionKey, item),
+                    icon: Icon(
+                      completed ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+                    ),
+                    label: Text(completed ? 'Completed' : 'Mark read'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    key: ValueKey<String>('adhkar-copy-${item.duaId}'),
+                    onPressed: () => _copyToClipboard(item),
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _toggleCompleted(String sectionKey, AdhkarItem item) async {
+    final key = _entryKey(sectionKey, item);
+    setState(() {
+      if (_completedEntries.contains(key)) {
+        _completedEntries.remove(key);
+      } else {
+        _completedEntries.add(key);
+      }
+    });
+    await _saveCompletionState();
+  }
+
+  String _entryKey(String sectionKey, AdhkarItem item) {
+    return '$sectionKey:${item.duaId}';
   }
 
   Widget _buildFieldSection({
@@ -428,6 +599,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: AppColors.slate,
                 ),
           ),
           const SizedBox(height: 6),
@@ -460,11 +632,16 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
 
   String _formatAdhkarForCopy(AdhkarItem item) {
     final buffer = StringBuffer();
-    buffer.writeln(item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}');
+    buffer.writeln(
+        item.title.isEmpty ? item.duaId : '${item.duaId} — ${item.title}');
     buffer.writeln();
     if (item.arabic.isNotEmpty) {
       buffer.writeln('Arabic:');
       buffer.writeln(item.arabic);
+      buffer.writeln();
+    }
+    if (item.repeatCount.isNotEmpty) {
+      buffer.writeln('Repeat: ${item.repeatCount}');
       buffer.writeln();
     }
     if (item.transcription.isNotEmpty) {
@@ -480,7 +657,51 @@ class _AdhkarScreenState extends State<AdhkarScreen> with TickerProviderStateMix
     if (item.reference.isNotEmpty) {
       buffer.writeln('Reference:');
       buffer.writeln(item.reference);
+      buffer.writeln();
+    }
+    if (item.uncertain && item.notes.isNotEmpty) {
+      buffer.writeln('Review note:');
+      buffer.writeln(item.notes);
     }
     return buffer.toString().trim();
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  const _SummaryPill({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withOpacity(0.74),
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 }
